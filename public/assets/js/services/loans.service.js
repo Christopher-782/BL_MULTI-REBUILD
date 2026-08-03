@@ -1,5 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
+import { kickSmsDispatcher } from './sms.service.js';
+
 import {
   formatCurrencyMinor,
   nairaToMinor,
@@ -302,6 +304,7 @@ export async function approveLoan(
     );
   }
 
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -329,6 +332,7 @@ export async function rejectLoan(
     );
   }
 
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -392,6 +396,7 @@ export async function approveLoanRepayment(
     );
   }
 
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -419,6 +424,7 @@ export async function rejectLoanRepayment(
     );
   }
 
+  kickSmsDispatcher(25);
   return data;
 }
 

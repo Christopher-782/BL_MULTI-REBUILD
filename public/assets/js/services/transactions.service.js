@@ -1,5 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
+import { kickSmsDispatcher } from './sms.service.js';
+
 function normalizeError(error, fallback = 'Transaction request failed.') {
   if (!error) return new Error(fallback);
 
@@ -233,6 +235,7 @@ export async function approveTransaction(transactionId) {
   });
 
   if (error) throw normalizeError(error, 'Unable to approve transaction.');
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -243,6 +246,7 @@ export async function rejectTransaction(transactionId, reason) {
   });
 
   if (error) throw normalizeError(error, 'Unable to reject transaction.');
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -276,5 +280,6 @@ export async function bulkApproveStaffTransactions(staffId, transactionIds) {
   });
 
   if (error) throw normalizeError(error, 'Bulk approval failed.');
+  kickSmsDispatcher(100);
   return data;
 }

@@ -11,6 +11,7 @@ import {
 } from '../services/dashboard.service.js';
 
 import { formatCurrencyMinor } from '../services/transactions.service.js';
+import { kickSmsDispatcher } from '../services/sms.service.js';
 
 
 function showDashboardBootFailure(error) {
@@ -38,6 +39,10 @@ const session = await requireActiveProfile();
 if (session) {
   bindSessionUI(session.profile, session.user);
   bindLogoutButtons();
+
+  if (['super_admin', 'admin', 'manager'].includes(session.profile.role)) {
+    kickSmsDispatcher(25);
+  }
 
   const message = document.querySelector('#pageMessage');
   const refreshButton = document.querySelector('#refreshDashboard');

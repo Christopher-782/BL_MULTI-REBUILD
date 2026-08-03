@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SMS Alerts | BL Multi Concept</title>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+</head>
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="sidebar-brand" href="./dashboard.html">
+        <img class="sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+        <a class="nav-link active" data-admin-only href="./sms.html">SMS alerts</a>
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+        <button data-logout class="secondary-button compact" type="button">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">ADMINISTRATION</p>
+          <h1>SMS alerts</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="dispatchSms" class="primary-button" type="button">Dispatch pending</button>
+          <button id="refreshSms" class="secondary-button" type="button">Refresh</button>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid sms-metric-grid" aria-label="SMS summary">
+        <article class="metric-card">
+          <span>Provider</span>
+          <strong id="smsProvider">—</strong>
+        </article>
+        <article class="metric-card">
+          <span>Mode</span>
+          <strong id="smsMode">—</strong>
+        </article>
+        <article class="metric-card">
+          <span>Pending queue</span>
+          <strong id="smsPending">—</strong>
+        </article>
+        <article class="metric-card">
+          <span>Sent today</span>
+          <strong id="smsSentToday">—</strong>
+        </article>
+      </section>
+
+      <section class="two-column-grid sms-settings-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">PROVIDER STATUS</p>
+              <h2>BulkSMS Nigeria</h2>
+            </div>
+            <span id="smsConfigBadge" class="state-badge">Checking</span>
+          </div>
+          <p class="panel-copy">
+            The API token is stored only as a Supabase Edge Function secret. It is never exposed in Render, browser JavaScript, HTML, or the database.
+          </p>
+
+          <div class="sms-detail-list">
+            <div><span>Sender ID</span><strong id="smsSenderId">—</strong></div>
+            <div><span>Gateway</span><strong id="smsGateway">—</strong></div>
+            <div><span>Failed / retryable</span><strong id="smsFailed">—</strong></div>
+            <div><span>Skipped (missing/invalid phone)</span><strong id="smsSkipped">—</strong></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">CONNECTION TEST</p>
+              <h2>Send test SMS</h2>
+            </div>
+          </div>
+          <p class="panel-copy">
+            Use your own phone number first. Keep test mode enabled until the provider configuration is confirmed.
+          </p>
+
+          <form id="smsTestForm" class="form-grid">
+            <label class="span-two">
+              <span>Nigerian phone number</span>
+              <input name="phone" type="tel" autocomplete="tel" placeholder="08012345678" required />
+            </label>
+            <label class="span-two">
+              <span>Optional test message</span>
+              <textarea name="message" rows="4" maxlength="500" placeholder="Leave blank to use the standard BL Multi Concept test message."></textarea>
+            </label>
+            <div class="span-two dialog-actions sms-form-actions">
+              <button id="sendTestSms" class="primary-button" type="submit">Send test SMS</button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">AUTOMATIC ALERTS</p>
+            <h2>Events currently connected</h2>
+          </div>
+        </div>
+        <div class="sms-event-grid">
+          <div><strong>Deposits</strong><span>Credit alert after approval</span></div>
+          <div><strong>Withdrawals</strong><span>Debit alert after approval</span></div>
+          <div><strong>Loans</strong><span>Approval/disbursement and rejection</span></div>
+          <div><strong>Loan repayments</strong><span>Approved repayment, balance and completion</span></div>
+          <div><strong>Overdrafts</strong><span>Approval and rejection</span></div>
+          <div><strong>Bulk approvals</strong><span>Each approved staff transaction gets its own customer alert</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/sms.js"></script>
+  <script defer src="./assets/js/ui/shell.js"></script>
+</body>
+</html>

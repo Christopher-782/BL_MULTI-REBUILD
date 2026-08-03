@@ -1,5 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
+import { kickSmsDispatcher } from './sms.service.js';
+
 import {
   formatCurrencyMinor,
   nairaToMinor,
@@ -253,6 +255,7 @@ export async function approveOverdraft(
     );
   }
 
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -281,6 +284,7 @@ export async function rejectOverdraft(
     );
   }
 
+  kickSmsDispatcher(25);
   return data;
 }
 
