@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept staff administration" />
+  <title>BL Multi Concept — Staff Administration</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <span class="nav-label">Administration</span>
+        <a class="nav-link active" href="./staff.html">Staff</a>
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+        <button data-logout class="secondary-button compact" type="button">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">ADMINISTRATION</p>
+          <h1>Staff</h1>
+        </div>
+        <button id="refreshStaff" class="secondary-button" type="button">Refresh</button>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid" aria-label="Staff summary">
+        <article class="metric-card"><span>Total staff</span><strong id="totalStaff">0</strong></article>
+        <article class="metric-card"><span>Active</span><strong id="activeStaff">0</strong></article>
+        <article class="metric-card"><span>Admins</span><strong id="privilegedStaff">0</strong></article>
+        <article class="metric-card"><span>Suspended/disabled</span><strong id="suspendedStaff">0</strong></article>
+      </section>
+
+      <section>
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">NEW STAFF</p>
+              <h2>Create staff account</h2>
+            </div>
+          </div>
+          <p class="panel-copy">Create the staff login directly. The password is sent securely to Supabase Auth and is never stored in the application database or audit log.</p>
+
+          <form id="createStaffForm" class="form-grid">
+            <label>
+              <span>Full name</span>
+              <input name="fullName" type="text" maxlength="120" autocomplete="off" required />
+            </label>
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" maxlength="200" autocomplete="off" required />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input name="phone" type="tel" maxlength="40" autocomplete="off" />
+            </label>
+            <label>
+              <span>Role</span>
+              <select name="role" required></select>
+            </label>
+            <label>
+              <span>Password</span>
+              <input name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required />
+            </label>
+            <label>
+              <span>Confirm password</span>
+              <input name="confirmPassword" type="password" minlength="8" maxlength="128" autocomplete="new-password" required />
+            </label>
+            <label style="grid-column: 1 / -1; display:flex; align-items:center; gap:8px;">
+              <input name="showPassword" type="checkbox" style="width:auto;" />
+              <span>Show password</span>
+            </label>
+            <p class="form-note" style="grid-column:1 / -1; margin:0;">Use at least 8 characters. The password is not saved in profiles or audit logs.</p>
+            <button class="primary-button form-submit" type="submit">Create staff account</button>
+          </form>
+        </article>
+
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">ACCESS CONTROL</p>
+            <h2>Staff accounts</h2>
+          </div>
+        </div>
+
+        <p id="staffLoading" class="loading-copy">Loading staff accounts...</p>
+        <p id="staffEmptyState" class="empty-state" hidden>No staff accounts found.</p>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Staff member</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Last sign in</th>
+                <th>Created</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="staffTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">ACCOUNTABILITY</p>
+            <h2>Recent audit activity</h2>
+          </div>
+        </div>
+        <p id="auditEmptyState" class="empty-state">No administrative changes have been recorded yet.</p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Actor</th>
+                <th>Action</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="editStaffDialog" class="app-dialog">
+    <form id="editStaffForm" class="dialog-card">
+      <input name="staffId" type="hidden" />
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">STAFF ACCOUNT</p>
+          <h2>Edit access</h2>
+        </div>
+        <button id="closeEditDialog" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label><span>Full name</span><input name="fullName" type="text" maxlength="120" required /></label>
+        <label><span>Phone</span><input name="phone" type="tel" maxlength="40" /></label>
+        <label><span>Role</span><select name="role" required></select></label>
+        <label>
+          <span>Status</span>
+          <select name="status" required>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </label>
+        <label><span>New password <small>(optional)</small></span><input name="newPassword" type="password" minlength="8" maxlength="128" autocomplete="new-password" /></label>
+        <label><span>Confirm new password</span><input name="confirmNewPassword" type="password" minlength="8" maxlength="128" autocomplete="new-password" /></label>
+      </div>
+      <p id="editLockoutNote" class="form-note" hidden>Your own role and status are locked to prevent accidental administrator lockout.</p>
+      <div class="dialog-actions">
+        <button id="cancelEditDialog" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/staff.js"></script>
+</body>
+</html>

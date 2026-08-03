@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept overdraft requests" />
+  <title>BL Multi Concept — Overdrafts</title>
+
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link active" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+
+        <button data-logout class="secondary-button compact" type="button">
+          Log out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">CREDIT OPERATIONS</p>
+          <h1>Overdrafts</h1>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="refreshOverdrafts" class="secondary-button" type="button">
+            Refresh
+          </button>
+
+          <button id="openNewOverdraft" data-overdraft-request class="primary-button" type="button">
+            New overdraft
+          </button>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid overdraft-metric-grid">
+        <article class="metric-card">
+          <span>Pending requests</span>
+          <strong id="pendingOverdraftCount">0</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Outstanding overdrafts</span>
+          <strong id="activeOverdraftCount">0</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Approved payouts</span>
+          <strong id="approvedOverdraftPayouts">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Current exposure</span>
+          <strong id="overdraftOutstanding">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Overdraft charges</span>
+          <strong id="overdraftCharges">₦0.00</strong>
+        </article>
+      </section>
+
+      <section class="panel wide-panel customer-filter-panel">
+        <form id="overdraftFilterForm" class="overdraft-filter-form">
+          <label class="filter-search">
+            <span>Search</span>
+            <input
+              name="search"
+              type="search"
+              maxlength="80"
+              placeholder="Overdraft no., customer no., customer, phone or account"
+              autocomplete="off"
+            />
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="active">Outstanding</option>
+              <option value="rejected">Rejected</option>
+              <option value="closed">Cleared</option>
+            </select>
+          </label>
+
+          <button class="primary-button" type="submit">
+            Filter
+          </button>
+
+          <button id="clearOverdraftFilters" class="secondary-button" type="button">
+            Clear
+          </button>
+        </form>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">OVERDRAFT REGISTER</p>
+            <h2>Requests and outstanding balances</h2>
+          </div>
+        </div>
+
+        <p class="panel-copy">
+          An overdraft request is a one-off payout greater than the customer's available account balance. Approval debits the full requested payout and may make the account negative. The manually entered charge is recorded separately.
+        </p>
+
+        <p id="overdraftLoading" class="loading-copy">
+          Loading overdrafts...
+        </p>
+
+        <p id="overdraftEmpty" class="empty-state" hidden>
+          No overdrafts match your filters.
+        </p>
+
+        <div class="table-wrap">
+          <table class="data-table overdraft-table">
+            <thead>
+              <tr>
+                <th>Overdraft</th>
+                <th>Customer / Account</th>
+                <th>Payout / Charge</th>
+                <th>Request projection</th>
+                <th>Current balance / Exposure</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="overdraftTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <span id="paginationText">0–0 of 0</span>
+
+          <div>
+            <button id="prevPage" class="secondary-button compact" type="button">
+              Previous
+            </button>
+
+            <button id="nextPage" class="secondary-button compact" type="button">
+              Next
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="newOverdraftDialog" class="app-dialog app-dialog-large">
+    <form id="newOverdraftForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">NEW OVERDRAFT</p>
+          <h2>Create overdraft request</h2>
+        </div>
+
+        <button id="closeNewOverdraft" class="icon-button" type="button" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <p class="panel-copy">
+        Search using the customer's 3-digit number. Enter the total amount the customer wants to receive. The system calculates how far below zero the account will go.
+      </p>
+
+      <div class="account-lookup-row">
+        <label>
+          <span>Customer number</span>
+          <input
+            name="customerNumber"
+            type="text"
+            inputmode="numeric"
+            maxlength="12"
+            placeholder="001"
+            autocomplete="off"
+            required
+          />
+        </label>
+
+        <button id="lookupOverdraftCustomer" class="secondary-button" type="button">
+          Find customer
+        </button>
+      </div>
+
+      <div id="overdraftCustomerPreview" class="account-preview" hidden></div>
+
+      <label id="overdraftAccountSelectWrap" class="single-field-label" hidden>
+        <span>Account</span>
+        <select id="overdraftAccountSelect" name="accountId"></select>
+      </label>
+
+      <div id="overdraftAccountPreview" class="account-preview" hidden></div>
+
+      <div class="form-grid transaction-money-grid">
+        <label>
+          <span>Requested payout (₦)</span>
+          <input
+            name="requestedAmount"
+            type="text"
+            inputmode="decimal"
+            placeholder="10000.00"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Manual charge (₦)</span>
+          <input
+            name="charge"
+            type="text"
+            inputmode="decimal"
+            value="0.00"
+            placeholder="1000.00"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Projected account balance</span>
+          <input
+            id="projectedBalance"
+            type="text"
+            readonly
+            placeholder="Calculated automatically"
+          />
+        </label>
+
+        <label>
+          <span>Projected overdraft exposure</span>
+          <input
+            id="projectedExposure"
+            type="text"
+            readonly
+            placeholder="Calculated automatically"
+          />
+        </label>
+      </div>
+
+      <p id="overdraftChargeNote" class="charge-rule-message" data-type="info">
+        The manual charge is recorded separately as overdraft revenue. It does not reduce the payout and does not change the account balance calculation.
+      </p>
+
+      <label class="single-field-label">
+        <span>Purpose / notes</span>
+        <textarea
+          name="purpose"
+          rows="3"
+          maxlength="400"
+          placeholder="Optional reason for the overdraft"
+        ></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelNewOverdraft" class="secondary-button" type="button">
+          Cancel
+        </button>
+
+        <button class="primary-button" type="submit">
+          Submit overdraft request
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="rejectOverdraftDialog" class="app-dialog">
+    <form id="rejectOverdraftForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">REJECT OVERDRAFT</p>
+          <h2 id="rejectOverdraftNumber">Overdraft</h2>
+        </div>
+
+        <button id="closeRejectOverdraft" class="icon-button" type="button" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <label class="single-field-label">
+        <span>Reason</span>
+        <textarea name="reason" rows="4" maxlength="300" required></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelRejectOverdraft" class="secondary-button" type="button">
+          Cancel
+        </button>
+
+        <button class="danger-button" type="submit">
+          Reject overdraft
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="closeOverdraftDialog" class="app-dialog">
+    <form id="closeOverdraftForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">CLOSE OVERDRAFT</p>
+          <h2 id="closeOverdraftNumber">Overdraft</h2>
+        </div>
+
+        <button id="closeCloseOverdraft" class="icon-button" type="button" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <p class="panel-copy">
+        Current account balance: <strong id="closeOverdraftBalance">₦0.00</strong>. The overdraft can only be closed when the account has returned to zero or a positive balance.
+      </p>
+
+      <label class="single-field-label">
+        <span>Reason / note</span>
+        <textarea name="reason" rows="3" maxlength="300"></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelCloseOverdraft" class="secondary-button" type="button">
+          Cancel
+        </button>
+
+        <button class="primary-button" type="submit">
+          Close overdraft
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/overdrafts.js"></script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept customer record" />
+  <title>BL Multi Concept — Customer</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+        <span class="nav-label">Operations</span>
+        <a class="nav-link active" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+        <button data-logout class="secondary-button compact" type="button">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar customer-detail-topbar">
+        <div>
+          <a class="back-link" href="./customers.html">← Back to customers</a>
+          <p class="eyebrow">CUSTOMER RECORD</p>
+          <h1 id="customerHeading">Loading customer...</h1>
+          <div class="customer-meta-row">
+            <span id="customerNumber">—</span>
+            <span id="customerStatus"></span>
+            <span>Created <strong id="customerCreatedAt">—</strong></span>
+          </div>
+        </div>
+        <button id="openCreateAccount" data-customer-manage class="primary-button" type="button">Open another account</button>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid customer-detail-metrics" aria-label="Customer account summary">
+        <article class="metric-card"><span>Number of accounts</span><strong id="accountCount">0</strong></article>
+        <article class="metric-card"><span>Total account balance</span><strong id="totalCustomerBalance">₦0.00</strong></article>
+      </section>
+
+      <section class="content-grid customer-detail-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">PROFILE</p>
+              <h2>Customer information</h2>
+            </div>
+          </div>
+
+          <form id="customerDetailsForm">
+            <div class="form-section-title">Personal information</div>
+            <div class="form-grid form-grid-three">
+              <label><span>First name</span><input name="firstName" type="text" maxlength="80" required /></label>
+              <label><span>Middle name</span><input name="middleName" type="text" maxlength="80" /></label>
+              <label><span>Last name</span><input name="lastName" type="text" maxlength="80" required /></label>
+              <label><span>Phone</span><input name="phone" type="tel" maxlength="40" required /></label>
+              <label><span>Email</span><input name="email" type="email" maxlength="160" /></label>
+              <label>
+                <span>Gender</span>
+                <select name="gender">
+                  <option value="">Not specified</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </select>
+              </label>
+              <label><span>Date of birth</span><input name="dateOfBirth" type="date" /></label>
+              <label><span>Occupation</span><input name="occupation" type="text" maxlength="120" /></label>
+              <label>
+                <span>Customer status</span>
+                <select name="status" required>
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-section-title">Address</div>
+            <div class="form-grid form-grid-three">
+              <label class="span-two"><span>Address</span><input name="address" type="text" maxlength="240" /></label>
+              <label><span>City</span><input name="city" type="text" maxlength="100" /></label>
+              <label><span>State</span><input name="state" type="text" maxlength="100" /></label>
+            </div>
+
+            <div class="form-section-title">Next of kin</div>
+            <div class="form-grid">
+              <label><span>Full name</span><input name="nextOfKinName" type="text" maxlength="160" /></label>
+              <label><span>Phone</span><input name="nextOfKinPhone" type="tel" maxlength="40" /></label>
+            </div>
+
+            <div class="form-actions" data-customer-manage>
+              <button class="primary-button" type="submit">Save customer</button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">ACCOUNTS</p>
+            <h2>Customer accounts</h2>
+          </div>
+        </div>
+
+        <p id="accountsEmpty" class="empty-state">No accounts found for this customer.</p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Account number</th>
+                <th>Type</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="accountsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="createAccountDialog" class="app-dialog">
+    <form id="createAccountForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">NEW ACCOUNT</p>
+          <h2>Open another account</h2>
+        </div>
+        <button id="closeCreateAccount" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+      <p class="panel-copy">PostgreSQL generates the account number. New accounts start with a zero ledger balance.</p>
+      <label class="single-field-label">
+        <span>Account type</span>
+        <select name="accountType" required>
+          <option value="savings">Savings</option>
+          <option value="current">Current</option>
+          <option value="business">Business</option>
+        </select>
+      </label>
+      <div class="dialog-actions">
+        <button id="cancelCreateAccount" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Create account</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/customer.js"></script>
+</body>
+</html>

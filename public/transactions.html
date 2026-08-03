@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept transaction operations" />
+  <title>BL Multi Concept — Transactions</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link active" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+        <button data-logout class="secondary-button compact" type="button">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">FINANCIAL OPERATIONS</p>
+          <h1>Transactions</h1>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="refreshTransactions" class="secondary-button" type="button">Refresh</button>
+          <button id="openNewTransaction" data-transaction-initiate class="primary-button" type="button">
+            New transaction
+          </button>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid transaction-metric-grid" aria-label="Transaction summary">
+        <article class="metric-card">
+          <span>Pending approval</span>
+          <strong id="pendingCount">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Approved today</span>
+          <strong id="approvedTodayCount">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Net deposits today</span>
+          <strong id="depositsToday">₦0.00</strong>
+        </article>
+        <article class="metric-card">
+          <span>Charges today</span>
+          <strong id="chargesToday">₦0.00</strong>
+        </article>
+        <article class="metric-card">
+          <span>Withdrawals today</span>
+          <strong id="withdrawalsToday">₦0.00</strong>
+        </article>
+      </section>
+
+      <section class="panel wide-panel customer-filter-panel">
+        <form id="transactionFilterForm" class="transaction-filter-form">
+          <label class="filter-search">
+            <span>Search</span>
+            <input
+              name="search"
+              type="search"
+              maxlength="80"
+              placeholder="Reference, customer, customer no. or account"
+              autocomplete="off"
+            />
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="reversed">Reversed</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Type</span>
+            <select name="type">
+              <option value="all">All types</option>
+              <option value="deposit">Deposit</option>
+              <option value="withdrawal">Withdrawal</option>
+              <option value="reversal">Reversal</option>
+              <option value="loan_disbursement">Loan disbursement</option>
+              <option value="loan_repayment">Loan repayment</option>
+              <option value="overdraft">Overdraft</option>
+            </select>
+          </label>
+
+          <button class="primary-button" type="submit">Filter</button>
+          <button id="clearTransactionFilters" class="secondary-button" type="button">Clear</button>
+        </form>
+      </section>
+
+
+      <section id="bulkApprovalPanel" class="panel wide-panel bulk-approval-panel" data-transaction-approve hidden>
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">MAKER-CHECKER CONTROL</p>
+            <h2>Bulk staff approval</h2>
+          </div>
+          <span id="bulkApprovalBadge" class="state-badge" data-status="pending">0 selected</span>
+        </div>
+
+        <p class="panel-copy">
+          Choose a staff member to load only that maker's pending transactions. You can select multiple eligible transactions and approve them together. Each item still passes the normal PostgreSQL approval, balance, charge and maker-checker checks.
+        </p>
+
+        <div class="bulk-approval-controls">
+          <label>
+            <span>Staff / maker</span>
+            <select id="bulkStaffSelect">
+              <option value="">Choose staff member</option>
+            </select>
+          </label>
+          <button id="loadStaffPending" class="secondary-button" type="button">Load pending queue</button>
+          <button id="selectAllVisible" class="secondary-button" type="button">Select all visible</button>
+          <button id="clearBulkSelection" class="secondary-button" type="button">Clear selection</button>
+          <button id="approveSelectedTransactions" class="primary-button" type="button" disabled>Approve selected</button>
+        </div>
+
+        <div class="bulk-approval-summary">
+          <span id="bulkStaffQueueSummary">Choose a staff member to begin.</span>
+          <strong id="bulkSelectedAmount">Selected amount: ₦0.00</strong>
+        </div>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">LEDGER WORKFLOW</p>
+            <h2>Transaction register</h2>
+          </div>
+        </div>
+
+        <p class="panel-copy">
+          Pending items do not affect balances. A different authorized staff member must approve them before PostgreSQL posts the immutable ledger entry.
+        </p>
+
+        <p id="transactionsLoading" class="loading-copy">Loading transactions...</p>
+        <p id="transactionsEmpty" class="empty-state" hidden>No transactions match your filters.</p>
+
+        <div class="table-wrap">
+          <table class="data-table transaction-table">
+            <thead>
+              <tr>
+                <th class="bulk-select-column" data-transaction-approve hidden><span class="sr-only">Select</span></th>
+                <th>Reference</th>
+                <th>Customer / Account</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Maker / Checker</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <span id="paginationText">0–0 of 0</span>
+          <div>
+            <button id="prevPage" class="secondary-button compact" type="button">Previous</button>
+            <button id="nextPage" class="secondary-button compact" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="newTransactionDialog" class="app-dialog">
+    <form id="newTransactionForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">NEW TRANSACTION</p>
+          <h2>Submit for approval</h2>
+        </div>
+        <button id="closeNewTransaction" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <p class="panel-copy">
+        Search using the customer's 3-digit customer number. For deposits, any charge is deducted from the gross deposit and only the net amount is credited after approval.
+      </p>
+
+      <div class="account-lookup-row">
+        <label>
+          <span>Customer number</span>
+          <input
+            name="customerNumber"
+            type="text"
+            inputmode="numeric"
+            maxlength="12"
+            placeholder="001"
+            autocomplete="off"
+            required
+          />
+        </label>
+        <button id="lookupCustomer" class="secondary-button" type="button">Find customer</button>
+      </div>
+
+      <div id="customerPreview" class="account-preview customer-transaction-preview" hidden></div>
+
+      <label id="accountSelectWrap" class="single-field-label" hidden>
+        <span>Select account</span>
+        <select id="accountSelect" name="accountId"></select>
+      </label>
+
+      <div id="accountPreview" class="account-preview" hidden></div>
+
+      <div class="form-grid transaction-money-grid">
+        <label>
+          <span>Transaction type</span>
+          <select name="type" required>
+            <option value="deposit">Deposit</option>
+            <option value="withdrawal">Withdrawal</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Amount (₦)</span>
+          <input
+            name="amount"
+            type="text"
+            inputmode="decimal"
+            placeholder="50000.00"
+            autocomplete="off"
+            required
+          />
+        </label>
+
+        <label id="chargeField">
+          <span>Charges (₦)</span>
+          <input
+            name="charge"
+            type="text"
+            inputmode="decimal"
+            value="0.00"
+            placeholder="0.00"
+            autocomplete="off"
+          />
+        </label>
+
+        <label>
+          <span>Net amount credited</span>
+          <input
+            id="netAmountPreview"
+            type="text"
+            value=""
+            placeholder="Calculated automatically"
+            readonly
+          />
+        </label>
+      </div>
+
+      <p id="chargeRuleMessage" class="charge-rule-message" hidden></p>
+
+      <label class="single-field-label transaction-description-field">
+        <span>Description / narration</span>
+        <textarea name="description" rows="3" maxlength="300" placeholder="Optional transaction narration"></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelNewTransaction" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Submit for approval</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="rejectDialog" class="app-dialog">
+    <form id="rejectForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">REJECT TRANSACTION</p>
+          <h2 id="rejectTransactionReference">Transaction</h2>
+        </div>
+        <button id="closeRejectDialog" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <label class="single-field-label">
+        <span>Reason</span>
+        <textarea name="reason" rows="4" maxlength="300" required></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelReject" class="secondary-button" type="button">Cancel</button>
+        <button class="danger-button" type="submit">Reject transaction</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="reversalDialog" class="app-dialog">
+    <form id="reversalForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">REQUEST REVERSAL</p>
+          <h2 id="reversalTransactionReference">Transaction</h2>
+        </div>
+        <button id="closeReversalDialog" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <p class="panel-copy">
+        The original ledger entry is never deleted. A compensating reversal is created and must be approved by another administrator.
+      </p>
+
+      <label class="single-field-label">
+        <span>Reason for reversal</span>
+        <textarea name="reason" rows="4" maxlength="300" required></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelReversal" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Request reversal</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/transactions.js"></script>
+</body>
+</html>

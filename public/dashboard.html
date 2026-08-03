@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head><link href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" rel="icon" type="image/avif"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Finance Dashboard — BL Multi Concept</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="./assets/css/dashboard.css?v=20260803-dashboard-hotfix-1" rel="stylesheet"/>
+</head>
+<body><button aria-expanded="false" aria-label="Open navigation" class="dashboard-mobile-menu" id="dashboardMenuToggle" type="button">Menu</button>
+<div class="app-layout">
+<!-- Sidebar -->
+<aside class="sidebar">
+<div class="sidebar-brand">
+<img alt="BL Multi Concept logo" class="brand-logo-image" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif"/>
+<div class="brand-text">
+<h1>BL Multi Concept</h1>
+<span>Finance Operations</span>
+</div>
+</div>
+<nav class="sidebar-nav">
+<div class="nav-section">
+<div class="nav-section-title">Workspace</div>
+<a class="nav-link active" href="./dashboard.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<rect height="7" width="7" x="3" y="3"></rect>
+<rect height="7" width="7" x="14" y="3"></rect>
+<rect height="7" width="7" x="14" y="14"></rect>
+<rect height="7" width="7" x="3" y="14"></rect>
+</svg>
+              Dashboard
+            </a>
+</div>
+<div class="nav-section">
+<div class="nav-section-title">Administration</div>
+<a class="nav-link" data-admin-only="" hidden="" href="./staff.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+<circle cx="9" cy="7" r="4"></circle>
+<path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+</svg>
+              Staff
+            </a>
+</div>
+<div class="nav-section">
+<div class="nav-section-title">Operations</div>
+<a class="nav-link" href="./customers.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+<circle cx="12" cy="7" r="4"></circle>
+</svg>
+              Customers
+            </a>
+<a class="nav-link" href="./transactions.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<rect height="16" rx="2" width="22" x="1" y="4"></rect>
+<line x1="1" x2="23" y1="10" y2="10"></line>
+</svg>
+              Transactions
+            </a>
+<a class="nav-link" href="./loans.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="12" x2="12" y1="8" y2="12"></line>
+<line x1="12" x2="12.01" y1="16" y2="16"></line>
+</svg>
+              Loans
+            </a>
+<a class="nav-link" href="./overdrafts.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+</svg>
+              Overdrafts
+            </a>
+<a class="nav-link" href="./expenses.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<line x1="12" x2="12" y1="1" y2="23"></line>
+<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+</svg>
+              Expenses
+            </a>
+</div>
+<div class="nav-section">
+<div class="nav-section-title">Control</div>
+<a class="nav-link" href="./reconciliation.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+<polyline points="14 2 14 8 20 8"></polyline>
+<line x1="16" x2="8" y1="13" y2="13"></line>
+<line x1="16" x2="8" y1="17" y2="17"></line>
+</svg>
+              Reconciliation
+            </a>
+<a class="nav-link" href="./reports.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+<path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+</svg>
+              Reports
+            </a>
+</div>
+</nav>
+<div class="sidebar-footer">
+<div class="user-card">
+<div class="user-avatar" id="userAvatar">SA</div>
+<div class="user-info">
+<strong data-session-name="" id="userName">System Administrator</strong>
+<span data-session-role="" id="userRole">Super Admin</span>
+</div>
+</div>
+<button class="btn-logout" data-logout="" id="logoutButton" type="button">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16">
+<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+<polyline points="16 17 21 12 16 7"></polyline>
+<line x1="21" x2="9" y1="12" y2="12"></line>
+</svg>
+            Log out
+          </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="main-content">
+<!-- Top Header -->
+<header class="top-header">
+<div class="header-title-group">
+<h2>
+              Finance dashboard
+              <span class="live-badge">Live</span>
+</h2>
+<p>
+              Daily balances, credit exposure, approvals and operating activity.
+            </p>
+</div>
+<div class="header-actions">
+<div class="datetime-display">
+<div class="date" id="dashboardDate">Loading...</div>
+<div class="time" id="dashboardTime">--:--</div>
+</div>
+<button class="btn-refresh" id="refreshDashboard" type="button">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16">
+<polyline points="23 4 23 10 17 10"></polyline>
+<polyline points="1 20 1 14 7 14"></polyline>
+<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+</svg>
+              Refresh
+            </button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="dashboard-content">
+<!-- Alert Message -->
+<div class="page-alert" hidden="" id="pageMessage"></div>
+<!-- KPI Cards -->
+<div class="kpi-grid">
+<div class="kpi-card" data-accent="blue">
+<div class="kpi-header">
+<div>
+<div class="kpi-label">Active customers</div>
+<div class="kpi-subtitle">Customer base</div>
+</div>
+<div class="kpi-icon">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+<circle cx="9" cy="7" r="4"></circle>
+</svg>
+</div>
+</div>
+<div class="kpi-value" id="activeCustomers">—</div>
+</div>
+<div class="kpi-card" data-accent="green">
+<div class="kpi-header">
+<div>
+<div class="kpi-label">Customer balances</div>
+<div class="kpi-subtitle">Positive account balances</div>
+</div>
+<div class="kpi-icon">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<line x1="12" x2="12" y1="1" y2="23"></line>
+<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+</svg>
+</div>
+</div>
+<div class="kpi-value" id="customerFunds">—</div>
+</div>
+<div class="kpi-card" data-accent="red">
+<div class="kpi-header">
+<div>
+<div class="kpi-label">Overdraft exposure</div>
+<div class="kpi-subtitle">Outstanding negative balances</div>
+</div>
+<div class="kpi-icon">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+</svg>
+</div>
+</div>
+<div class="kpi-value" id="overdraftExposure">—</div>
+</div>
+<div class="kpi-card" data-accent="amber">
+<div class="kpi-header">
+<div>
+<div class="kpi-label">Loan outstanding</div>
+<div class="kpi-subtitle">Principal + unpaid interest</div>
+</div>
+<div class="kpi-icon">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="12" x2="12" y1="8" y2="12"></line>
+<line x1="12" x2="12.01" y1="16" y2="16"></line>
+</svg>
+</div>
+</div>
+<div class="kpi-value" id="loanOutstanding">—</div>
+</div>
+</div>
+<!-- Main Grid: Money Movement + Pending Approvals -->
+<div class="dashboard-grid">
+<!-- Money Movement -->
+<div class="card">
+<div class="card-header">
+<h3>
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="color: var(--primary-500)" viewbox="0 0 24 24" width="18">
+<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+<polyline points="17 6 23 6 23 12"></polyline>
+</svg>
+                  Money movement
+                  <span class="tag">Today</span>
+</h3>
+<span id="todayFlowStatus" style="
+                    font-size: 0.8125rem;
+                    color: var(--gray-400);
+                    font-weight: 500;
+                  ">Loading...</span>
+</div>
+<div class="card-body">
+<div class="money-flow-list">
+<div class="flow-item">
+<div class="flow-indicator deposit">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+<polyline points="17 6 23 6 23 12"></polyline>
+</svg>
+</div>
+<div class="flow-details">
+<strong>Customer deposits</strong>
+<span>Approved net deposits</span>
+</div>
+<div class="flow-amount positive" id="todayDeposits">—</div>
+</div>
+<div class="flow-item">
+<div class="flow-indicator withdrawal">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+<polyline points="17 18 23 18 23 12"></polyline>
+</svg>
+</div>
+<div class="flow-details">
+<strong>Customer withdrawals</strong>
+<span>Approved withdrawals</span>
+</div>
+<div class="flow-amount negative" id="todayWithdrawals">
+                      —
+                    </div>
+</div>
+<div class="flow-item">
+<div class="flow-indicator revenue">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<line x1="12" x2="12" y1="1" y2="23"></line>
+<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+</svg>
+</div>
+<div class="flow-details">
+<strong>Realized revenue</strong>
+<span>Charges + collected interest</span>
+</div>
+<div class="flow-amount positive" id="todayRevenue">—</div>
+</div>
+<div class="flow-item">
+<div class="flow-indicator expense">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<rect height="16" rx="2" width="22" x="1" y="4"></rect>
+<line x1="1" x2="23" y1="10" y2="10"></line>
+</svg>
+</div>
+<div class="flow-details">
+<strong>Operating expenses</strong>
+<span>Approved expenses</span>
+</div>
+<div class="flow-amount negative" id="todayExpenses">—</div>
+</div>
+</div>
+<div class="operational-net" data-sign="positive" id="operationalNet">
+<div class="operational-net-label">
+                    Operational net today
+                    <small>Realized revenue less approved expenses</small>
+</div>
+<div class="operational-net-value" id="todayOperationalNet">
+                    —
+                  </div>
+</div>
+</div>
+</div>
+<!-- Pending Approvals -->
+<div class="card">
+<div class="card-header">
+<h3>
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="color: var(--warning-500)" viewbox="0 0 24 24" width="18">
+<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+<polyline points="22 4 12 14.01 9 11.01"></polyline>
+</svg>
+                  Pending approvals
+                  <span class="tag">Control Queue</span>
+</h3>
+<div style="
+                    background: var(--gray-100);
+                    padding: var(--space-1) var(--space-3);
+                    border-radius: var(--radius-full);
+                    font-size: 0.8125rem;
+                    font-weight: 700;
+                    color: var(--gray-700);
+                  ">
+                  Total
+                  <span id="pendingTotal" style="
+                      color: var(--primary-600);
+                      margin-left: var(--space-1);
+                    ">—</span>
+</div>
+</div>
+<div class="card-body">
+<div class="approval-queue">
+<div class="approval-item" data-type="transactions">
+<div class="approval-meta">
+<div class="approval-icon">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<rect height="16" rx="2" width="22" x="1" y="4"></rect>
+<line x1="1" x2="23" y1="10" y2="10"></line>
+</svg>
+</div>
+<span class="approval-name">Transactions</span>
+</div>
+<span class="approval-count" id="pendingTransactions">—</span>
+</div>
+<div class="approval-item" data-type="loans">
+<div class="approval-meta">
+<div class="approval-icon">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="12" x2="12" y1="8" y2="12"></line>
+<line x1="12" x2="12.01" y1="16" y2="16"></line>
+</svg>
+</div>
+<span class="approval-name">Loans</span>
+</div>
+<span class="approval-count" id="pendingLoans">—</span>
+</div>
+<div class="approval-item" data-type="repayments">
+<div class="approval-meta">
+<div class="approval-icon">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<polyline points="1 4 1 10 7 10"></polyline>
+<path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+</svg>
+</div>
+<span class="approval-name">Loan repayments</span>
+</div>
+<span class="approval-count" id="pendingRepayments">—</span>
+</div>
+<div class="approval-item" data-type="overdrafts">
+<div class="approval-meta">
+<div class="approval-icon">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+</svg>
+</div>
+<span class="approval-name">Overdrafts</span>
+</div>
+<span class="approval-count" id="pendingOverdrafts">—</span>
+</div>
+<div class="approval-item" data-type="expenses">
+<div class="approval-meta">
+<div class="approval-icon">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<line x1="12" x2="12" y1="1" y2="23"></line>
+<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+</svg>
+</div>
+<span class="approval-name">Expenses</span>
+</div>
+<span class="approval-count" id="pendingExpenses">—</span>
+</div>
+</div>
+<a class="review-link" href="./transactions.html">Review approval queue →</a>
+</div>
+</div>
+</div>
+<!-- Quick Access -->
+<div class="quick-access-grid">
+<a class="quick-card" href="./transactions.html">
+<div class="quick-icon blue">
+<svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22">
+<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+<polyline points="17 6 23 6 23 12"></polyline>
+</svg>
+</div>
+<div class="quick-details">
+<h4>New transaction</h4>
+<p>Deposit or withdrawal</p>
+</div>
+<svg class="quick-arrow" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+<a class="quick-card" href="./customers.html">
+<div class="quick-icon purple">
+<svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22">
+<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+<circle cx="12" cy="7" r="4"></circle>
+</svg>
+</div>
+<div class="quick-details">
+<h4>Customers</h4>
+<p>Open directory</p>
+</div>
+<svg class="quick-arrow" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+<a class="quick-card" href="./reconciliation.html">
+<div class="quick-icon teal">
+<svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+<polyline points="14 2 14 8 20 8"></polyline>
+<line x1="16" x2="8" y1="13" y2="13"></line>
+<line x1="16" x2="8" y1="17" y2="17"></line>
+</svg>
+</div>
+<div class="quick-details">
+<h4>Reconciliation</h4>
+<p>Balance staff activity</p>
+</div>
+<svg class="quick-arrow" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+<a class="quick-card" href="./reports.html">
+<div class="quick-icon indigo">
+<svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22">
+<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+<path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+</svg>
+</div>
+<div class="quick-details">
+<h4>Reports</h4>
+<p>Management overview</p>
+</div>
+<svg class="quick-arrow" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+</div>
+<!-- Recent Activity -->
+<div class="activity-grid">
+<!-- Recent Transactions -->
+<div class="card">
+<div class="card-header">
+<h3>
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="color: var(--primary-500)" viewbox="0 0 24 24" width="18">
+<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+</svg>
+                  Transactions
+                  <span class="tag">Recent Activity</span>
+</h3>
+<a class="view-all" href="./transactions.html">View all →</a>
+</div>
+<div class="card-body">
+<table class="activity-table">
+<thead>
+<tr>
+<th>Reference</th>
+<th>Customer</th>
+<th>Type</th>
+<th style="text-align: right">Amount</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="recentTransactionsBody">
+<!-- Populated by JS -->
+</tbody>
+</table>
+<div class="empty-state" hidden="" id="recentTransactionsEmpty">
+<svg fill="none" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
+<rect height="18" rx="2" width="18" x="3" y="3"></rect>
+<line x1="3" x2="21" y1="9" y2="9"></line>
+<line x1="9" x2="9" y1="21" y2="9"></line>
+</svg>
+<p>No transactions yet</p>
+</div>
+</div>
+</div>
+<!-- Recent Expenses -->
+<div class="card">
+<div class="card-header">
+<h3>
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="color: var(--danger-500)" viewbox="0 0 24 24" width="18">
+<line x1="12" x2="12" y1="1" y2="23"></line>
+<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+</svg>
+                  Expenses
+                  <span class="tag">Recent Activity</span>
+</h3>
+<a class="view-all" href="./expenses.html">View all →</a>
+</div>
+<div class="card-body">
+<table class="activity-table">
+<thead>
+<tr>
+<th>Number</th>
+<th>Description</th>
+<th style="text-align: right">Amount</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="recentExpensesBody">
+<!-- Populated by JS -->
+</tbody>
+</table>
+<div class="empty-state" hidden="" id="recentExpensesEmpty">
+<svg fill="none" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
+<rect height="18" rx="2" width="18" x="3" y="3"></rect>
+<line x1="3" x2="21" y1="9" y2="9"></line>
+<line x1="9" x2="9" y1="21" y2="9"></line>
+</svg>
+<p>No expenses yet</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./assets/js/pages/dashboard.js?v=20260803-dashboard-hotfix-1" type="module"></script>
+<button aria-label="Close navigation" class="dashboard-sidebar-overlay" id="dashboardSidebarOverlay" type="button"></button></body>
+</html>

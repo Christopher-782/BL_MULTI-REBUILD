@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Complete BL Multi Concept staff setup" />
+  <title>BL Multi Concept — Account Setup</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/auth.css" />
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-brand" aria-label="BL Multi Concept staff access">
+      <span class="auth-brand-glow" aria-hidden="true"></span>
+      <div class="auth-brand-top">
+        <img class="brand-logo auth-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <div class="auth-brand-title">
+          <strong>BL Multi Concept</strong>
+          <span>Finance Operations</span>
+        </div>
+      </div>
+
+      <div class="auth-brand-copy">
+        <p class="eyebrow">STAFF ACCESS</p>
+        <h1>Finish your secure account setup.</h1>
+        <p class="brand-copy">Complete the setup process to access the finance operations portal.</p>
+        <div class="security-note">
+          <span class="security-dot" aria-hidden="true"></span>
+          <span>Protected staff access</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-card">
+      <div class="auth-card-header">
+        <p class="eyebrow">ACCOUNT SETUP</p>
+        <h2>Create your password</h2>
+        <p>Use at least 10 characters and keep it private.</p>
+      </div>
+
+      <div id="inviteMessage" class="form-message" hidden></div>
+
+      <form id="passwordForm">
+        <div class="field">
+          <label for="newPassword">New password</label>
+          <input id="newPassword" name="password" type="password" minlength="10" autocomplete="new-password" required />
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirm password</label>
+          <input id="confirmPassword" name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required />
+        </div>
+
+        <button class="primary-button" type="submit" style="width:100%">Set password</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/auth/accept-invite.js"></script>
+</body>
+</html>

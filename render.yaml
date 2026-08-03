@@ -1,0 +1,7 @@
+services:
+  - type: web
+    runtime: static
+    name: bl-multi-concept
+    buildCommand: echo "BL Multi Concept static site - no build required"
+    staticPublishPath: ./public
+    autoDeploy: true

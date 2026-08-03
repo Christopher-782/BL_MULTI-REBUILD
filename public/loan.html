@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept loan record" />
+  <title>BL Multi Concept — Loan</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link active" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+        <button data-logout class="secondary-button compact" type="button">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar customer-detail-topbar">
+        <div>
+          <a class="back-link" href="./loans.html">← Back to loans</a>
+          <p class="eyebrow">LOAN RECORD</p>
+          <h1 id="loanHeading">Loading loan...</h1>
+
+          <div class="customer-meta-row">
+            <span id="loanStatus"></span>
+            <span>Customer <strong id="loanCustomerNumber">—</strong></span>
+            <span>Account <strong id="loanAccountNumber">—</strong></span>
+          </div>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid loan-detail-metrics">
+        <article class="metric-card">
+          <span>Principal</span>
+          <strong id="loanPrincipal">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Interest</span>
+          <strong id="loanInterest">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Total payable</span>
+          <strong id="loanTotalPayable">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Outstanding</span>
+          <strong id="loanOutstanding">₦0.00</strong>
+        </article>
+      </section>
+
+      <section class="content-grid loan-detail-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">BORROWER</p>
+              <h2 id="loanCustomerName">—</h2>
+            </div>
+          </div>
+
+          <dl class="detail-list">
+            <div>
+              <dt>Interest rate</dt>
+              <dd id="loanRate">—</dd>
+            </div>
+
+            <div>
+              <dt>Term</dt>
+              <dd id="loanTerm">—</dd>
+            </div>
+
+            <div>
+              <dt>Due date</dt>
+              <dd id="loanDueDate">—</dd>
+            </div>
+
+            <div>
+              <dt>Principal outstanding</dt>
+              <dd id="loanPrincipalOutstanding">₦0.00</dd>
+            </div>
+
+            <div>
+              <dt>Interest outstanding</dt>
+              <dd id="loanInterestOutstanding">₦0.00</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">WORKFLOW</p>
+              <h2>Approval information</h2>
+            </div>
+          </div>
+
+          <dl class="detail-list">
+            <div>
+              <dt>Requested by</dt>
+              <dd id="loanRequestedBy">—</dd>
+            </div>
+
+            <div>
+              <dt>Approved by</dt>
+              <dd id="loanApprovedBy">—</dd>
+            </div>
+
+            <div>
+              <dt>Purpose</dt>
+              <dd id="loanPurpose">—</dd>
+            </div>
+
+            <div>
+              <dt>Rejection reason</dt>
+              <dd id="loanRejectionReason">—</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">REPAYMENTS</p>
+            <h2>Repayment history</h2>
+          </div>
+        </div>
+
+        <p id="repaymentHistoryEmpty" class="empty-state">
+          No repayments have been recorded for this loan.
+        </p>
+
+        <div class="table-wrap">
+          <table class="data-table loan-repayment-table">
+            <thead>
+              <tr>
+                <th>Repayment</th>
+                <th>Amount</th>
+                <th>Allocation</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th>Maker / Checker</th>
+              </tr>
+            </thead>
+
+            <tbody id="repaymentHistoryBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/loan.js"></script>
+</body>
+</html>
