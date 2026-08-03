@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept expenses" />
+  <title>BL Multi Concept — Expenses</title>
+
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link active" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+
+        <button data-logout class="secondary-button compact" type="button">
+          Log out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">OPERATING COSTS</p>
+          <h1>Expenses</h1>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="refreshExpenses" class="secondary-button" type="button">
+            Refresh
+          </button>
+
+          <button id="openNewExpense" data-expense-request class="primary-button" type="button">
+            New expense
+          </button>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid expense-metric-grid">
+        <article class="metric-card">
+          <span>Pending approval</span>
+          <strong id="pendingExpenseCount">0</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Expenses today</span>
+          <strong id="expenseToday">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Expenses this month</span>
+          <strong id="expenseMonth">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Approved records</span>
+          <strong id="approvedExpenseCount">0</strong>
+        </article>
+      </section>
+
+      <section class="panel wide-panel customer-filter-panel">
+        <form id="expenseFilterForm" class="expense-filter-form">
+          <label class="filter-search">
+            <span>Search</span>
+
+            <input
+              name="search"
+              type="search"
+              maxlength="80"
+              placeholder="Expense no., description, reference or staff"
+              autocomplete="off"
+            />
+          </label>
+
+          <label>
+            <span>Status</span>
+
+            <select name="status">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Category</span>
+
+            <select name="category">
+              <option value="all">All categories</option>
+              <option value="Rent">Rent</option>
+              <option value="Salaries & Wages">Salaries & Wages</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Transport">Transport</option>
+              <option value="Office Supplies">Office Supplies</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Tax & Regulatory">Tax & Regulatory</option>
+              <option value="Professional Fees">Professional Fees</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <button class="primary-button" type="submit">
+            Filter
+          </button>
+
+          <button id="clearExpenseFilters" class="secondary-button" type="button">
+            Clear
+          </button>
+        </form>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">EXPENSE REGISTER</p>
+            <h2>Operating expenses</h2>
+          </div>
+        </div>
+
+        <p class="panel-copy">
+          Expenses are immutable after review. Staff can submit them, but a different manager/admin/super-admin must approve or reject them.
+        </p>
+
+        <p id="expenseLoading" class="loading-copy">
+          Loading expenses...
+        </p>
+
+        <p id="expenseEmpty" class="empty-state" hidden>
+          No expenses match your filters.
+        </p>
+
+        <div class="table-wrap">
+          <table class="data-table expense-table">
+            <thead>
+              <tr>
+                <th>Expense</th>
+                <th>Category / Description</th>
+                <th>Amount</th>
+                <th>Payment</th>
+                <th>Maker / Checker</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="expenseTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <span id="paginationText">0–0 of 0</span>
+
+          <div>
+            <button id="prevPage" class="secondary-button compact" type="button">
+              Previous
+            </button>
+
+            <button id="nextPage" class="secondary-button compact" type="button">
+              Next
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="newExpenseDialog" class="app-dialog">
+    <form id="newExpenseForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">NEW EXPENSE</p>
+          <h2>Record operating expense</h2>
+        </div>
+
+        <button id="closeNewExpense" class="icon-button" type="button" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Expense date</span>
+
+          <input
+            name="expenseDate"
+            type="date"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Category</span>
+
+          <select name="category" required>
+            <option value="">Select category</option>
+            <option value="Rent">Rent</option>
+            <option value="Salaries & Wages">Salaries & Wages</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Transport">Transport</option>
+            <option value="Office Supplies">Office Supplies</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Tax & Regulatory">Tax & Regulatory</option>
+            <option value="Professional Fees">Professional Fees</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Amount (₦)</span>
+
+          <input
+            name="amount"
+            type="text"
+            inputmode="decimal"
+            placeholder="50000.00"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Payment method</span>
+
+          <select name="paymentMethod" required>
+            <option value="cash">Cash</option>
+            <option value="bank_transfer">Bank transfer</option>
+            <option value="card">Card</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+
+        <label>
+          <span>External reference</span>
+
+          <input
+            name="externalReference"
+            type="text"
+            maxlength="160"
+            placeholder="Optional receipt/transfer reference"
+          />
+        </label>
+      </div>
+
+      <label class="single-field-label">
+        <span>Description</span>
+
+        <textarea
+          name="description"
+          rows="4"
+          maxlength="500"
+          placeholder="What was this expense for?"
+          required
+        ></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelNewExpense" class="secondary-button" type="button">
+          Cancel
+        </button>
+
+        <button class="primary-button" type="submit">
+          Submit expense
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="rejectExpenseDialog" class="app-dialog">
+    <form id="rejectExpenseForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">REJECT EXPENSE</p>
+          <h2 id="rejectExpenseNumber">Expense</h2>
+        </div>
+
+        <button id="closeRejectExpense" class="icon-button" type="button" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <label class="single-field-label">
+        <span>Reason</span>
+
+        <textarea
+          name="reason"
+          rows="4"
+          maxlength="300"
+          required
+        ></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelRejectExpense" class="secondary-button" type="button">
+          Cancel
+        </button>
+
+        <button class="danger-button" type="submit">
+          Reject expense
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/expenses.js"></script>
+</body>
+</html>

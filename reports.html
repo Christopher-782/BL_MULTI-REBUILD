@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept management reports" />
+  <title>BL Multi Concept — Reports</title>
+
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link active" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+
+        <button data-logout class="secondary-button compact" type="button">
+          Log out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">MANAGEMENT INFORMATION</p>
+          <h1>Reports</h1>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="thisMonthReport" class="secondary-button" type="button">
+            This month
+          </button>
+
+          <button id="exportReportCsv" class="primary-button" type="button">
+            Export CSV
+          </button>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="panel wide-panel report-filter-panel">
+        <form id="reportFilterForm" class="report-filter-form">
+          <label>
+            <span>From</span>
+
+            <input
+              name="fromDate"
+              type="date"
+              required
+            />
+          </label>
+
+          <label>
+            <span>To</span>
+
+            <input
+              name="toDate"
+              type="date"
+              required
+            />
+          </label>
+
+          <button class="primary-button" type="submit">
+            Generate report
+          </button>
+        </form>
+
+        <p class="report-range-copy">
+          Current report: <strong id="reportRange">—</strong>
+        </p>
+      </section>
+
+      <section class="metric-grid report-metric-grid">
+        <article class="metric-card">
+          <span>Realized revenue</span>
+          <strong id="reportRevenue">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Approved expenses</span>
+          <strong id="reportExpenses">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Operational net</span>
+          <strong id="reportNet" data-sign="positive">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Net customer deposits</span>
+          <strong id="reportDeposits">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Customer withdrawals</span>
+          <strong id="reportWithdrawals">₦0.00</strong>
+        </article>
+      </section>
+
+      <section class="content-grid report-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">REALIZED REVENUE</p>
+              <h2>Revenue breakdown</h2>
+            </div>
+          </div>
+
+          <dl class="report-list">
+            <div>
+              <dt>Deposit charges</dt>
+              <dd id="depositChargeRevenue">₦0.00</dd>
+            </div>
+
+            <div>
+              <dt>Overdraft charges</dt>
+              <dd id="overdraftChargeRevenue">₦0.00</dd>
+            </div>
+
+            <div>
+              <dt>Loan interest collected</dt>
+              <dd id="loanInterestRevenue">₦0.00</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">CREDIT ACTIVITY</p>
+              <h2>Principal movement</h2>
+            </div>
+          </div>
+
+          <dl class="report-list">
+            <div>
+              <dt>Loan disbursements</dt>
+              <dd id="loanDisbursements">₦0.00</dd>
+            </div>
+
+            <div>
+              <dt>Loan repayments</dt>
+              <dd id="loanRepayments">₦0.00</dd>
+            </div>
+
+            <div>
+              <dt>Overdraft payouts</dt>
+              <dd id="overdraftPayouts">₦0.00</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">OPERATING COSTS</p>
+            <h2>Expense breakdown</h2>
+          </div>
+        </div>
+
+        <p id="expenseBreakdownEmpty" class="empty-state">
+          No approved expenses exist for this period.
+        </p>
+
+        <div class="table-wrap">
+          <table class="data-table report-expense-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Records</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+
+            <tbody id="expenseBreakdownBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="report-note">
+        <strong>Reporting note:</strong>
+        Operational net is realized deposit-charge revenue + approved overdraft charges + loan interest actually collected, less approved operating expenses. Customer deposits, withdrawals, loan principal and overdraft principal are shown as activity and are not treated as income or expenses.
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/reports.js"></script>
+</body>
+</html>

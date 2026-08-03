@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept loan operations" />
+  <title>BL Multi Concept — Loans</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+
+        <span class="nav-label">Operations</span>
+        <a class="nav-link" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link active" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+        <button data-logout class="secondary-button compact" type="button">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">CREDIT OPERATIONS</p>
+          <h1>Loans</h1>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="refreshLoans" class="secondary-button" type="button">
+            Refresh
+          </button>
+
+          <button id="openNewLoan" data-loan-request class="primary-button" type="button">
+            New loan
+          </button>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid loan-metric-grid" aria-label="Loan summary">
+        <article class="metric-card">
+          <span>Pending applications</span>
+          <strong id="pendingLoanCount">0</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Active loans</span>
+          <strong id="activeLoanCount">0</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Total outstanding</span>
+          <strong id="loanOutstanding">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Repayments today</span>
+          <strong id="repaymentsToday">₦0.00</strong>
+        </article>
+
+        <article class="metric-card">
+          <span>Overdue loans</span>
+          <strong id="overdueLoanCount">0</strong>
+        </article>
+      </section>
+
+      <section class="panel wide-panel customer-filter-panel">
+        <form id="loanFilterForm" class="loan-filter-form">
+          <label class="filter-search">
+            <span>Search</span>
+            <input
+              name="search"
+              type="search"
+              maxlength="80"
+              placeholder="Loan no., customer no., customer, phone or account"
+              autocomplete="off"
+            />
+          </label>
+
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="paid">Paid</option>
+              <option value="rejected">Rejected</option>
+              <option value="defaulted">Defaulted</option>
+            </select>
+          </label>
+
+          <button class="primary-button" type="submit">Filter</button>
+          <button id="clearLoanFilters" class="secondary-button" type="button">Clear</button>
+        </form>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">LOAN REGISTER</p>
+            <h2>Applications and active loans</h2>
+          </div>
+        </div>
+
+        <p class="panel-copy">
+          Approval immediately disburses the principal into the selected customer account. The staff member who created an application cannot approve or reject it.
+        </p>
+
+        <p id="loansLoading" class="loading-copy">Loading loans...</p>
+        <p id="loansEmpty" class="empty-state" hidden>No loans match your filters.</p>
+
+        <div class="table-wrap">
+          <table class="data-table loan-table">
+            <thead>
+              <tr>
+                <th>Loan</th>
+                <th>Customer / Account</th>
+                <th>Principal / Interest</th>
+                <th>Outstanding</th>
+                <th>Term / Due</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="loansTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <span id="paginationText">0–0 of 0</span>
+          <div>
+            <button id="prevPage" class="secondary-button compact" type="button">Previous</button>
+            <button id="nextPage" class="secondary-button compact" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">REPAYMENT APPROVALS</p>
+            <h2>Pending loan repayments</h2>
+          </div>
+        </div>
+
+        <p class="panel-copy">
+          These are external cash/bank-transfer repayments waiting for a different authorized staff member to review. Approval reduces the loan outstanding balance but does not debit the customer's deposit account.
+        </p>
+
+        <p id="pendingRepaymentsLoading" class="loading-copy">
+          Loading pending repayments...
+        </p>
+
+        <p id="pendingRepaymentsEmpty" class="empty-state" hidden>
+          No repayments are awaiting approval.
+        </p>
+
+        <div class="table-wrap">
+          <table class="data-table loan-repayment-approval-table">
+            <thead>
+              <tr>
+                <th>Repayment</th>
+                <th>Loan / Customer</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Maker</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="pendingRepaymentsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="newLoanDialog" class="app-dialog app-dialog-large">
+    <form id="newLoanForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">NEW LOAN</p>
+          <h2>Create loan application</h2>
+        </div>
+
+        <button id="closeNewLoan" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <p class="panel-copy">
+        Search with the 3-digit customer number, select the account that should receive the loan, then enter the flat interest rate and term.
+      </p>
+
+      <div class="account-lookup-row">
+        <label>
+          <span>Customer number</span>
+          <input
+            name="customerNumber"
+            type="text"
+            inputmode="numeric"
+            maxlength="12"
+            placeholder="001"
+            autocomplete="off"
+            required
+          />
+        </label>
+
+        <button id="lookupLoanCustomer" class="secondary-button" type="button">
+          Find customer
+        </button>
+      </div>
+
+      <div id="loanCustomerPreview" class="account-preview" hidden></div>
+
+      <label id="loanAccountSelectWrap" class="single-field-label" hidden>
+        <span>Disbursement account</span>
+        <select id="loanAccountSelect" name="accountId"></select>
+      </label>
+
+      <div id="loanAccountPreview" class="account-preview" hidden></div>
+
+      <div class="form-grid form-grid-three">
+        <label>
+          <span>Principal (₦)</span>
+          <input
+            name="principal"
+            type="text"
+            inputmode="decimal"
+            placeholder="100000.00"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Flat interest rate (%)</span>
+          <input
+            name="interestRate"
+            type="text"
+            inputmode="decimal"
+            placeholder="10.00"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Term (months)</span>
+          <input
+            name="termMonths"
+            type="number"
+            min="1"
+            max="120"
+            step="1"
+            value="1"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Calculated interest</span>
+          <input id="loanInterestPreview" type="text" readonly />
+        </label>
+
+        <label>
+          <span>Total payable</span>
+          <input id="loanTotalPreview" type="text" readonly />
+        </label>
+      </div>
+
+      <label class="single-field-label">
+        <span>Purpose / notes</span>
+        <textarea
+          name="purpose"
+          rows="3"
+          maxlength="400"
+          placeholder="Optional reason for the loan"
+        ></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelNewLoan" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Submit loan application</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="rejectLoanDialog" class="app-dialog">
+    <form id="rejectLoanForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">REJECT LOAN</p>
+          <h2 id="rejectLoanNumber">Loan</h2>
+        </div>
+
+        <button id="closeRejectLoan" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <label class="single-field-label">
+        <span>Reason</span>
+        <textarea name="reason" rows="4" maxlength="300" required></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelRejectLoan" class="secondary-button" type="button">Cancel</button>
+        <button class="danger-button" type="submit">Reject loan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="repaymentDialog" class="app-dialog">
+    <form id="repaymentForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">LOAN REPAYMENT</p>
+          <h2 id="repaymentLoanNumber">Loan</h2>
+        </div>
+
+        <button id="closeRepayment" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <p class="panel-copy">
+        Outstanding: <strong id="repaymentOutstanding">₦0.00</strong>. This repayment is external cash/bank-transfer repayment and does not debit the customer's savings/current account.
+      </p>
+
+      <div class="form-grid">
+        <label>
+          <span>Amount (₦)</span>
+          <input
+            name="amount"
+            type="text"
+            inputmode="decimal"
+            placeholder="25000.00"
+            required
+          />
+        </label>
+
+        <label>
+          <span>Payment method</span>
+          <select name="paymentMethod" required>
+            <option value="cash">Cash</option>
+            <option value="bank_transfer">Bank transfer</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+
+        <label>
+          <span>External reference</span>
+          <input
+            name="externalReference"
+            type="text"
+            maxlength="160"
+            placeholder="Optional transfer/teller reference"
+          />
+        </label>
+      </div>
+
+      <label class="single-field-label">
+        <span>Notes</span>
+        <textarea name="notes" rows="3" maxlength="300"></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelRepayment" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Submit repayment</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="rejectRepaymentDialog" class="app-dialog">
+    <form id="rejectRepaymentForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">REJECT REPAYMENT</p>
+          <h2 id="rejectRepaymentNumber">Repayment</h2>
+        </div>
+
+        <button id="closeRejectRepayment" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <label class="single-field-label">
+        <span>Reason</span>
+        <textarea name="reason" rows="4" maxlength="300" required></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button id="cancelRejectRepayment" class="secondary-button" type="button">Cancel</button>
+        <button class="danger-button" type="submit">Reject repayment</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/loans.js"></script>
+</body>
+</html>

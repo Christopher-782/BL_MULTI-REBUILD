@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/avif" href="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BL Multi Concept customer management" />
+  <title>BL Multi Concept — Customers</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <script defer src="./assets/js/ui/shell.js"></script>
+</head>
+<body class="app-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="./dashboard.html" class="sidebar-brand" aria-label="BL Multi Concept dashboard">
+        <img class="brand-logo sidebar-logo" src="https://res.cloudinary.com/deoqw88yb/image/upload/v1777630347/ChatGPT_Image_May_1_2026_11_09_15_AM_wrclwq.avif" alt="BL Multi Concept logo" />
+        <span>
+          <strong>BL Multi Concept</strong>
+          <small>Finance Operations</small>
+        </span>
+      </a>
+
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <span class="nav-label">Administration</span>
+        <a class="nav-link" data-admin-only hidden href="./staff.html">Staff</a>
+        <span class="nav-label">Operations</span>
+        <a class="nav-link active" href="./customers.html">Customers</a>
+        <a class="nav-link" href="./transactions.html">Transactions</a>
+        <a class="nav-link" href="./loans.html">Loans</a>
+        <a class="nav-link" href="./overdrafts.html">Overdrafts</a>
+        <a class="nav-link" href="./expenses.html">Expenses</a>
+        <a class="nav-link" href="./reports.html">Reports</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div>
+          <strong data-session-name>Loading...</strong>
+          <small data-session-role>Checking access</small>
+        </div>
+        <button data-logout class="secondary-button compact" type="button">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">CUSTOMER OPERATIONS</p>
+          <h1>Customers</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="refreshCustomers" class="secondary-button" type="button">Refresh</button>
+          <button id="openCreateCustomer" data-customer-manage class="primary-button" type="button">Create customer</button>
+        </div>
+      </header>
+
+      <div id="pageMessage" class="page-message" hidden></div>
+
+      <section class="metric-grid customer-metric-grid" aria-label="Customer summary">
+        <article class="metric-card"><span>Total matching customers</span><strong id="customerCount">0</strong></article>
+        <article class="metric-card"><span>Active on this page</span><strong id="visibleActive">0</strong></article>
+        <article class="metric-card"><span>Accounts on this page</span><strong id="visibleAccounts">0</strong></article>
+        <article class="metric-card metric-card-emphasis"><span>Total customer balances</span><strong id="totalCustomerBalance">₦0.00</strong><small id="portfolioBalanceNote">Across all open accounts</small></article>
+        <article class="metric-card"><span>Balance on this page</span><strong id="visibleBalance">₦0.00</strong></article>
+      </section>
+
+      <section class="panel wide-panel customer-filter-panel">
+        <form id="customerSearchForm" class="customer-filter-form">
+          <label class="filter-search">
+            <span>Search customers</span>
+            <input name="search" type="search" maxlength="80" placeholder="Name, phone, email or customer number" autocomplete="off" />
+          </label>
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option value="all">All statuses</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+          <button class="primary-button" type="submit">Search</button>
+          <button id="clearCustomerFilters" class="secondary-button" type="button">Clear</button>
+        </form>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">CUSTOMER DIRECTORY</p>
+            <h2>Customer records</h2>
+          </div>
+        </div>
+
+        <p id="customersLoading" class="loading-copy">Loading customers...</p>
+        <p id="customersEmpty" class="empty-state" hidden>No customers match your search.</p>
+
+        <div class="table-wrap">
+          <table class="data-table customers-table">
+            <thead>
+              <tr>
+                <th>Customer no.</th>
+                <th>Customer</th>
+                <th>Primary account</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <span id="paginationText">0–0 of 0</span>
+          <div>
+            <button id="prevPage" class="secondary-button compact" type="button">Previous</button>
+            <button id="nextPage" class="secondary-button compact" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="createCustomerDialog" class="app-dialog app-dialog-large">
+    <form id="createCustomerForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">NEW CUSTOMER</p>
+          <h2>Create customer and account</h2>
+        </div>
+        <button id="closeCreateCustomer" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+
+      <p class="panel-copy">The customer number and first account number are generated by PostgreSQL. The browser cannot choose or alter either identifier.</p>
+
+      <div class="form-section-title">Personal information</div>
+      <div class="form-grid form-grid-three">
+        <label><span>First name</span><input name="firstName" type="text" maxlength="80" required /></label>
+        <label><span>Middle name</span><input name="middleName" type="text" maxlength="80" /></label>
+        <label><span>Last name</span><input name="lastName" type="text" maxlength="80" required /></label>
+        <label><span>Phone</span><input name="phone" type="tel" maxlength="40" required /></label>
+        <label><span>Email</span><input name="email" type="email" maxlength="160" /></label>
+        <label>
+          <span>Gender</span>
+          <select name="gender">
+            <option value="">Not specified</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+            <option value="prefer_not_to_say">Prefer not to say</option>
+          </select>
+        </label>
+        <label><span>Date of birth</span><input name="dateOfBirth" type="date" /></label>
+        <label><span>Occupation</span><input name="occupation" type="text" maxlength="120" /></label>
+        <label>
+          <span>First account type</span>
+          <select name="accountType" required>
+            <option value="savings">Savings</option>
+            <option value="current">Current</option>
+            <option value="business">Business</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="form-section-title">Address</div>
+      <div class="form-grid form-grid-three">
+        <label class="span-two"><span>Address</span><input name="address" type="text" maxlength="240" /></label>
+        <label><span>City</span><input name="city" type="text" maxlength="100" /></label>
+        <label><span>State</span><input name="state" type="text" maxlength="100" /></label>
+      </div>
+
+      <div class="form-section-title">Next of kin</div>
+      <div class="form-grid">
+        <label><span>Full name</span><input name="nextOfKinName" type="text" maxlength="160" /></label>
+        <label><span>Phone</span><input name="nextOfKinPhone" type="tel" maxlength="40" /></label>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="cancelCreateCustomer" class="secondary-button" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Create customer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./assets/js/pages/customers.js"></script>
+</body>
+</html>
