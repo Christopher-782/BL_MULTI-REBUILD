@@ -1,5 +1,63 @@
 import { supabase } from '../config/supabase.js';
 
+function signalApprovalQueueChanged() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('bl:approvals-changed'));
+  }
+}
+
+function isMissingRpcError(error, functionName) {
+  if (!error) return false;
+
+  const code = String(error.code || '');
+  const message = String(error.message || '');
+
+  return (
+    code === 'PGRST202' ||
+    (message.includes('schema cache') && message.includes(functionName))
+  );
+}
+
+async function fallbackPendingTransactionMakers() {
+  const { data: authData } = await supabase.auth.getUser();
+  const currentUserId = authData?.user?.id || '';
+
+  let query = supabase
+    .from('transaction_directory')
+    .select('initiated_by, initiated_by_name, amount_minor, created_at')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(5000);
+
+  if (currentUserId) {
+    query = query.neq('initiated_by', currentUserId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw normalizeError(error, 'Unable to load staff pending queues.');
+
+  const grouped = new Map();
+
+  for (const row of data || []) {
+    if (!row.initiated_by) continue;
+
+    const existing = grouped.get(row.initiated_by) || {
+      staff_id: row.initiated_by,
+      staff_name: row.initiated_by_name || 'Staff member',
+      pending_count: 0,
+      pending_amount_minor: 0,
+    };
+
+    existing.pending_count += 1;
+    existing.pending_amount_minor += Number(row.amount_minor || 0);
+    grouped.set(row.initiated_by, existing);
+  }
+
+  return [...grouped.values()].sort((a, b) =>
+    String(a.staff_name).localeCompare(String(b.staff_name)),
+  );
+}
+
 function normalizeError(error, fallback = 'Transaction request failed.') {
   if (!error) return new Error(fallback);
 
@@ -224,6 +282,7 @@ export async function initiateTransaction({
   });
 
   if (error) throw normalizeError(error, 'Unable to initiate transaction.');
+  signalApprovalQueueChanged();
   return data;
 }
 
@@ -233,6 +292,7 @@ export async function approveTransaction(transactionId) {
   });
 
   if (error) throw normalizeError(error, 'Unable to approve transaction.');
+  signalApprovalQueueChanged();
   return data;
 }
 
@@ -243,6 +303,7 @@ export async function rejectTransaction(transactionId, reason) {
   });
 
   if (error) throw normalizeError(error, 'Unable to reject transaction.');
+  signalApprovalQueueChanged();
   return data;
 }
 
@@ -253,14 +314,87 @@ export async function requestReversal(transactionId, reason) {
   });
 
   if (error) throw normalizeError(error, 'Unable to request reversal.');
+  signalApprovalQueueChanged();
   return data;
 }
 
 export async function getPendingTransactionMakers() {
   const { data, error } = await supabase.rpc('get_pending_transaction_makers');
 
-  if (error) throw normalizeError(error, 'Unable to load staff pending queues.');
-  return Array.isArray(data) ? data : [];
+  if (!error) return Array.isArray(data) ? data : [];
+
+  if (isMissingRpcError(error, 'get_pending_transaction_makers')) {
+    console.warn(
+      'get_pending_transaction_makers() is not available in the Supabase schema cache; using the transaction directory fallback.',
+    );
+    return fallbackPendingTransactionMakers();
+  }
+
+  throw normalizeError(error, 'Unable to load staff pending queues.');
+}
+
+async function fallbackBulkApproveStaffTransactions(staffId, ids) {
+  const { data: eligibleRows, error: eligibilityError } = await supabase
+    .from('transaction_directory')
+    .select('id, reference, initiated_by, status')
+    .in('id', ids);
+
+  if (eligibilityError) {
+    throw normalizeError(eligibilityError, 'Unable to validate selected transactions.');
+  }
+
+  const eligibleById = new Map((eligibleRows || []).map((row) => [row.id, row]));
+  const results = [];
+  let approvedCount = 0;
+  let failedCount = 0;
+
+  for (const id of ids) {
+    const row = eligibleById.get(id);
+
+    if (!row || row.status !== 'pending' || row.initiated_by !== staffId) {
+      failedCount += 1;
+      results.push({
+        transaction_id: id,
+        reference: row?.reference || null,
+        status: 'failed',
+        error: 'Transaction is not pending or was not created by the selected staff member.',
+      });
+      continue;
+    }
+
+    const { data, error } = await supabase.rpc('approve_transaction', {
+      p_transaction_id: id,
+    });
+
+    if (error) {
+      failedCount += 1;
+      results.push({
+        transaction_id: id,
+        reference: row.reference || null,
+        status: 'failed',
+        error: error.message || 'Approval failed.',
+        sqlstate: error.code || null,
+      });
+      continue;
+    }
+
+    approvedCount += 1;
+    results.push({
+      transaction_id: id,
+      reference: row.reference || null,
+      status: 'approved',
+      result: data,
+    });
+  }
+
+  return {
+    maker_id: staffId,
+    requested_count: ids.length,
+    approved_count: approvedCount,
+    failed_count: failedCount,
+    results,
+    fallback_mode: true,
+  };
 }
 
 export async function bulkApproveStaffTransactions(staffId, transactionIds) {
@@ -275,6 +409,20 @@ export async function bulkApproveStaffTransactions(staffId, transactionIds) {
     p_transaction_ids: ids,
   });
 
-  if (error) throw normalizeError(error, 'Bulk approval failed.');
-  return data;
+  if (error && !isMissingRpcError(error, 'bulk_approve_staff_transactions')) {
+    throw normalizeError(error, 'Bulk approval failed.');
+  }
+
+  const result = error
+    ? await fallbackBulkApproveStaffTransactions(staffId, ids)
+    : data;
+
+  if (error) {
+    console.warn(
+      'bulk_approve_staff_transactions(uuid, uuid[]) is not available in the Supabase schema cache; using per-transaction approval fallback.',
+    );
+  }
+
+  signalApprovalQueueChanged();
+  return result;
 }

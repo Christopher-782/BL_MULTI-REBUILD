@@ -352,6 +352,9 @@ to authenticated;
 
 commit;
 
+-- Refresh PostgREST/Supabase RPC schema cache after creating the functions.
+notify pgrst, 'reload schema';
+
 -- Quick verification (read-only):
 select public.get_customer_portfolio_summary() as customer_portfolio;
 select public.get_dashboard_summary() as dashboard_summary;
