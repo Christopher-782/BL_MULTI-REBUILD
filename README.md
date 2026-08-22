@@ -1,4 +1,8 @@
-# BL Multi Concept — Rebuild Step 1
+# BL Multi Concept
+
+This release includes the full static application and Supabase migrations through production hardening migration 018.
+
+Before deployment, follow [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md). In particular, rotate the previously exposed database credential, apply migration 018, run `npm test`, and complete the staging concurrency tests.
 
 This is the clean foundation for the vanilla HTML/CSS/JavaScript + Supabase rebuild.
 

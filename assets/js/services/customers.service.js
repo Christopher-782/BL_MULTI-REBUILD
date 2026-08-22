@@ -37,9 +37,9 @@ export async function getCustomerPortfolioSummary() {
   let from = 0;
   const pageSize = 1000;
   let accountCount = 0;
-  let positiveBalanceMinor = 0;
-  let netBalanceMinor = 0;
-  let overdraftExposureMinor = 0;
+  let positiveBalanceMinor = 0n;
+  let netBalanceMinor = 0n;
+  let overdraftExposureMinor = 0n;
 
   while (true) {
     const { data: accounts, error: accountError } = await supabase
@@ -59,11 +59,11 @@ export async function getCustomerPortfolioSummary() {
     const rows = accounts ?? [];
 
     for (const account of rows) {
-      const balance = Number(account.cached_balance_minor || 0);
+      const balance = BigInt(String(account.cached_balance_minor || 0));
       accountCount += 1;
       netBalanceMinor += balance;
-      positiveBalanceMinor += Math.max(balance, 0);
-      overdraftExposureMinor += Math.max(-balance, 0);
+      positiveBalanceMinor += balance > 0n ? balance : 0n;
+      overdraftExposureMinor += balance < 0n ? -balance : 0n;
     }
 
     if (rows.length < pageSize) break;

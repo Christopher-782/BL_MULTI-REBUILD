@@ -58,12 +58,21 @@ if (session) {
   }
 
   function formatCurrencyMinor(value = 0, currency = 'NGN') {
-    const major = Number(value || 0) / 100;
-    return new Intl.NumberFormat('en-NG', {
+    const minor = BigInt(String(value ?? 0));
+    const negative = minor < 0n;
+    const absolute = negative ? -minor : minor;
+    const whole = absolute / 100n;
+    const fraction = (absolute % 100n).toString().padStart(2, '0');
+    const currencyPart = new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency,
-      minimumFractionDigits: 2,
-    }).format(major);
+      currencyDisplay: 'narrowSymbol',
+    }).formatToParts(0).find((part) => part.type === 'currency')?.value || currency;
+    const groupedWhole = new Intl.NumberFormat('en-NG', {
+      maximumFractionDigits: 0,
+    }).format(whole);
+
+    return `${negative ? '-' : ''}${currencyPart}${groupedWhole}.${fraction}`;
   }
 
   function makeTextCell(primary, secondary = '') {
@@ -94,10 +103,10 @@ if (session) {
 
     const pageBalanceMinor = state.customers.reduce(
       (sum, item) => sum + (item.accounts || []).reduce(
-        (accountSum, account) => accountSum + Number(account.cached_balance_minor || 0),
-        0,
+        (accountSum, account) => accountSum + BigInt(String(account.cached_balance_minor || 0)),
+        0n,
       ),
-      0,
+      0n,
     );
 
     document.querySelector('#visibleBalance').textContent = formatCurrencyMinor(pageBalanceMinor);

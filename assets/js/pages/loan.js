@@ -307,26 +307,30 @@ if (session) {
           'td',
         );
 
-      allocation.innerHTML = `
-        <strong>Interest ${formatCurrencyMinor(
-          repayment.interest_component_minor,
-          currency,
-        )}</strong>
-        <small>Principal ${formatCurrencyMinor(
-          repayment.principal_component_minor,
-          currency,
-        )}</small>
-      `;
+      const interest = document.createElement('strong');
+      const principal = document.createElement('small');
+
+      interest.textContent = `Interest ${formatCurrencyMinor(
+        repayment.interest_component_minor,
+        currency,
+      )}`;
+      principal.textContent = `Principal ${formatCurrencyMinor(
+        repayment.principal_component_minor,
+        currency,
+      )}`;
+      allocation.append(interest, principal);
 
       const method =
         document.createElement(
           'td',
         );
 
-      method.innerHTML = `
-        <strong>${repayment.payment_method}</strong>
-        <small>${repayment.external_reference || 'No external reference'}</small>
-      `;
+      const methodName = document.createElement('strong');
+      const reference = document.createElement('small');
+
+      methodName.textContent = repayment.payment_method;
+      reference.textContent = repayment.external_reference || 'No external reference';
+      method.append(methodName, reference);
 
       const status =
         document.createElement(
@@ -358,16 +362,16 @@ if (session) {
           'td',
         );
 
-      people.innerHTML = `
-        <strong>${repayment.requested_by_name || '—'}</strong>
-        <small>${
-          repayment.approved_by_name
-            ? `Approved by ${repayment.approved_by_name}`
-            : repayment.rejected_by_name
-              ? `Rejected by ${repayment.rejected_by_name}`
-              : 'Awaiting review'
-        }</small>
-      `;
+      const requestedBy = document.createElement('strong');
+      const reviewedBy = document.createElement('small');
+
+      requestedBy.textContent = repayment.requested_by_name || '—';
+      reviewedBy.textContent = repayment.approved_by_name
+        ? `Approved by ${repayment.approved_by_name}`
+        : repayment.rejected_by_name
+          ? `Rejected by ${repayment.rejected_by_name}`
+          : 'Awaiting review';
+      people.append(requestedBy, reviewedBy);
 
       row.append(
         number,

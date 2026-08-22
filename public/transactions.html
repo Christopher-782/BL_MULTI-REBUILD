@@ -61,7 +61,7 @@
 
       <div id="pageMessage" class="page-message" hidden></div>
 
-      <section class="metric-grid transaction-metric-grid" aria-label="Transaction summary">
+      <section class="metric-grid transaction-metric-grid" data-management-only aria-label="Transaction summary">
         <article class="metric-card">
           <span>Pending approval</span>
           <strong id="pendingCount">0</strong>
@@ -126,6 +126,34 @@
         </form>
       </section>
 
+      <section class="panel wide-panel filtered-transaction-totals" aria-live="polite" aria-label="Filtered transaction totals">
+        <div class="panel-heading filtered-totals-heading">
+          <div>
+            <p class="eyebrow">CURRENT FILTER</p>
+            <h2 id="filteredTotalsTitle">Filtered transaction totals</h2>
+          </div>
+        </div>
+
+        <div class="filtered-total-grid">
+          <article>
+            <span>Total transactions</span>
+            <strong id="filteredTransactionCount">0</strong>
+          </article>
+          <article>
+            <span>Gross amount</span>
+            <strong id="filteredGrossAmount">₦0.00</strong>
+          </article>
+          <article>
+            <span>Total charges</span>
+            <strong id="filteredChargeAmount">₦0.00</strong>
+          </article>
+          <article>
+            <span>Net amount</span>
+            <strong id="filteredNetAmount">₦0.00</strong>
+          </article>
+        </div>
+      </section>
+
 
       <section id="bulkApprovalPanel" class="panel wide-panel bulk-approval-panel" data-transaction-approve hidden>
         <div class="panel-heading">
@@ -163,11 +191,11 @@
         <div class="panel-heading">
           <div>
             <p class="eyebrow">LEDGER WORKFLOW</p>
-            <h2>Transaction register</h2>
+            <h2 class="transaction-register-heading">Transaction register</h2>
           </div>
         </div>
 
-        <p class="panel-copy">
+        <p id="transactionRegisterCopy" class="panel-copy">
           Pending items do not affect balances. A different authorized staff member must approve them before PostgreSQL posts the immutable ledger entry.
         </p>
 
@@ -214,23 +242,29 @@
       </div>
 
       <p class="panel-copy">
-        Search using the customer's 3-digit customer number. For deposits, any charge is deducted from the gross deposit and only the net amount is credited after approval.
+        Start typing a customer name, customer number, phone number or account number. Results appear instantly; choose the correct customer before entering the transaction amount.
       </p>
 
-      <div class="account-lookup-row">
-        <label>
-          <span>Customer number</span>
-          <input
-            name="customerNumber"
-            type="text"
-            inputmode="numeric"
-            maxlength="12"
-            placeholder="001"
-            autocomplete="off"
-            required
-          />
-        </label>
-        <button id="lookupCustomer" class="secondary-button" type="button">Find customer</button>
+      <div class="customer-live-search-wrap">
+        <div class="account-lookup-row">
+          <label>
+            <span>Customer search</span>
+            <input
+              name="customerNumber"
+              type="search"
+              maxlength="80"
+              placeholder="Name, 001, 080..., or account number"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="customerSearchResults"
+              aria-expanded="false"
+              required
+            />
+          </label>
+          <button id="lookupCustomer" class="secondary-button" type="button">Search</button>
+        </div>
+        <div id="customerSearchResults" class="customer-live-results" role="listbox" hidden></div>
       </div>
 
       <div id="customerPreview" class="account-preview customer-transaction-preview" hidden></div>
@@ -349,7 +383,7 @@
     </form>
   </dialog>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js" integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg" crossorigin="anonymous"></script>
   <script type="module" src="./assets/js/pages/transactions.js"></script>
 </body>
 </html>

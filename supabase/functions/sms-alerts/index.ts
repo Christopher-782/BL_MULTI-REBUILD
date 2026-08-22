@@ -1,6 +1,6 @@
 import { withSupabase } from 'npm:@supabase/server@^1'
 
-const PROVIDER = Deno.env.get('SMS_PROVIDER') || 'bulksmsnigeria'
+const PROVIDER = String(Deno.env.get('SMS_PROVIDER') || 'bulksms').trim().toLowerCase()
 const API_TOKEN = Deno.env.get('BULKSMS_TOKEN') || ''
 const SENDER_ID = Deno.env.get('SMS_SENDER_ID') || Deno.env.get('BULKSMS_SENDER_ID') || ''
 const TEST_MODE = String(Deno.env.get('SMS_TEST_MODE') ?? Deno.env.get('TEST_MODE') ?? 'true').toLowerCase() === 'true'
@@ -220,7 +220,7 @@ function messageFor(item: any) {
 }
 
 function providerConfigured() {
-  return PROVIDER === 'bulksmsnigeria' &&
+  return ['bulksms', 'bulksmsnigeria'].includes(PROVIDER) &&
     Boolean(API_TOKEN) &&
     Boolean(SENDER_ID) &&
     SENDER_ID.length <= 11
@@ -229,7 +229,7 @@ function providerConfigured() {
 async function providerSend(phone: string, body: string) {
   if (!providerConfigured()) {
     throw new Error(
-      'SMS provider is not fully configured. Set BULKSMS_TOKEN and an approved SMS_SENDER_ID of 11 characters or fewer.',
+      'SMS provider is not fully configured. Set SMS_PROVIDER=bulksms, BULKSMS_TOKEN, and an approved SMS_SENDER_ID of 11 characters or fewer.',
     )
   }
 

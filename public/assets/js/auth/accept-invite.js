@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase.js';
+import { getRoleLandingPage } from './session.js';
 
 const form = document.querySelector('#passwordForm');
 const message = document.querySelector('#inviteMessage');
@@ -57,6 +58,7 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
-  setMessage('Password created. Opening your dashboard...', 'success');
-  window.setTimeout(() => window.location.replace('./dashboard.html'), 700);
+  const landingPage = await getRoleLandingPage(session.user.id);
+  setMessage('Password created. Opening your workspace...', 'success');
+  window.setTimeout(() => window.location.replace(landingPage), 700);
 });

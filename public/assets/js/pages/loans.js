@@ -130,6 +130,24 @@ if (session) {
       '#loanAccountPreview',
     );
 
+  function renderPreview(
+    container,
+    fields,
+  ) {
+    container.replaceChildren();
+
+    for (const [label, value] of fields) {
+      const item = document.createElement('div');
+      const caption = document.createElement('span');
+      const content = document.createElement('strong');
+
+      caption.textContent = label;
+      content.textContent = value ?? '—';
+      item.append(caption, content);
+      container.append(item);
+    }
+  }
+
   const rejectDialog =
     document.querySelector(
       '#rejectLoanDialog',
@@ -306,27 +324,21 @@ if (session) {
       return;
     }
 
-    accountPreview.innerHTML = `
-      <div>
-        <span>Account number</span>
-        <strong>${account.account_number}</strong>
-      </div>
-      <div>
-        <span>Account type</span>
-        <strong>${account.account_type}</strong>
-      </div>
-      <div>
-        <span>Current balance</span>
-        <strong>${formatCurrencyMinor(
-          account.cached_balance_minor,
-          account.currency,
-        )}</strong>
-      </div>
-      <div>
-        <span>Status</span>
-        <strong>${account.status}</strong>
-      </div>
-    `;
+    renderPreview(
+      accountPreview,
+      [
+        ['Account number', account.account_number],
+        ['Account type', account.account_type],
+        [
+          'Current balance',
+          formatCurrencyMinor(
+            account.cached_balance_minor,
+            account.currency,
+          ),
+        ],
+        ['Status', account.status],
+      ],
+    );
 
     accountPreview.hidden =
       false;
@@ -354,24 +366,15 @@ if (session) {
       return;
     }
 
-    customerPreview.innerHTML = `
-      <div>
-        <span>Customer</span>
-        <strong>${customerName(customer) || '—'}</strong>
-      </div>
-      <div>
-        <span>Customer number</span>
-        <strong>${customer.customer_number || '—'}</strong>
-      </div>
-      <div>
-        <span>Phone</span>
-        <strong>${customer.phone || '—'}</strong>
-      </div>
-      <div>
-        <span>Status</span>
-        <strong>${customer.status || '—'}</strong>
-      </div>
-    `;
+    renderPreview(
+      customerPreview,
+      [
+        ['Customer', customerName(customer) || '—'],
+        ['Customer number', customer.customer_number || '—'],
+        ['Phone', customer.phone || '—'],
+        ['Status', customer.status || '—'],
+      ],
+    );
 
     customerPreview.hidden =
       false;

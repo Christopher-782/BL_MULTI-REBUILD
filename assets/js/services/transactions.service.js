@@ -1,5 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
+import { kickSmsDispatcher } from './sms.service.js';
+
 function signalApprovalQueueChanged() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('bl:approvals-changed'));
@@ -45,11 +47,11 @@ async function fallbackPendingTransactionMakers() {
       staff_id: row.initiated_by,
       staff_name: row.initiated_by_name || 'Staff member',
       pending_count: 0,
-      pending_amount_minor: 0,
+      pending_amount_minor: 0n,
     };
 
     existing.pending_count += 1;
-    existing.pending_amount_minor += Number(row.amount_minor || 0);
+    existing.pending_amount_minor += BigInt(String(row.amount_minor || 0));
     grouped.set(row.initiated_by, existing);
   }
 
@@ -118,13 +120,21 @@ export function minorToInput(value = 0) {
 }
 
 export function formatCurrencyMinor(value = 0, currency = 'NGN') {
-  const amount = Number(value || 0) / 100;
-
-  return new Intl.NumberFormat('en-NG', {
+  const minor = BigInt(String(value ?? 0));
+  const negative = minor < 0n;
+  const absolute = negative ? -minor : minor;
+  const whole = absolute / 100n;
+  const fraction = (absolute % 100n).toString().padStart(2, '0');
+  const currencyPart = new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
+    currencyDisplay: 'narrowSymbol',
+  }).formatToParts(0).find((part) => part.type === 'currency')?.value || currency;
+  const groupedWhole = new Intl.NumberFormat('en-NG', {
+    maximumFractionDigits: 0,
+  }).format(whole);
+
+  return `${negative ? '-' : ''}${currencyPart}${groupedWhole}.${fraction}`;
 }
 
 function safeSearch(value = '') {
@@ -143,6 +153,21 @@ function normalizeCustomerNumber(value) {
   }
 
   return raw;
+}
+
+
+export async function searchTransactionCustomers(value, { limit = 8 } = {}) {
+  const term = safeSearch(value);
+  if (!term) return [];
+
+  const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 15);
+  const { data, error } = await supabase.rpc('search_transaction_customers', {
+    p_term: term,
+    p_limit: safeLimit,
+  });
+
+  if (error) throw normalizeError(error, 'Unable to search customers.');
+  return Array.isArray(data) ? data : [];
 }
 
 export async function listTransactions({
@@ -215,6 +240,31 @@ export async function getTransactionSummary() {
   };
 }
 
+export async function getFilteredTransactionTotals({
+  search = '',
+  status = 'all',
+  type = 'all',
+  makerId = '',
+} = {}) {
+  const { data, error } = await supabase.rpc('get_filtered_transaction_totals', {
+    p_search: safeSearch(search) || null,
+    p_status: status && status !== 'all' ? status : null,
+    p_type: type && type !== 'all' ? type : null,
+    p_maker_id: makerId || null,
+  });
+
+  if (error) {
+    throw normalizeError(error, 'Unable to calculate filtered transaction totals.');
+  }
+
+  return data ?? {
+    transaction_count: 0,
+    gross_amount_minor: '0',
+    charge_amount_minor: '0',
+    net_amount_minor: '0',
+  };
+}
+
 export async function getCustomerTransactionContext(customerNumber) {
   const normalized = normalizeCustomerNumber(customerNumber);
 
@@ -232,27 +282,9 @@ export async function getCustomerTransactionContext(customerNumber) {
 }
 
 export async function getAccountById(accountId) {
-  const { data, error } = await supabase
-    .from('accounts')
-    .select(`
-      id,
-      account_number,
-      account_type,
-      currency,
-      status,
-      cached_balance_minor,
-      customer_id,
-      customers (
-        id,
-        customer_number,
-        first_name,
-        middle_name,
-        last_name,
-        status
-      )
-    `)
-    .eq('id', accountId)
-    .single();
+  const { data, error } = await supabase.rpc('get_transaction_account', {
+    p_account_id: accountId,
+  });
 
   if (error || !data) {
     throw new Error('Account was not found.');
@@ -267,7 +299,12 @@ export async function initiateTransaction({
   amount,
   charge = '0',
   description = '',
+  idempotencyKey,
 }) {
+  if (!idempotencyKey) {
+    throw new Error('A transaction request identifier could not be created. Refresh and try again.');
+  }
+
   const amountMinor = nairaToMinor(amount);
   const chargeMinor = type === 'deposit'
     ? nairaToMinor(charge, { allowZero: true })
@@ -279,6 +316,7 @@ export async function initiateTransaction({
     p_amount_minor: amountMinor,
     p_charge_minor: chargeMinor,
     p_description: description || null,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) throw normalizeError(error, 'Unable to initiate transaction.');
@@ -293,6 +331,7 @@ export async function approveTransaction(transactionId) {
 
   if (error) throw normalizeError(error, 'Unable to approve transaction.');
   signalApprovalQueueChanged();
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -304,6 +343,7 @@ export async function rejectTransaction(transactionId, reason) {
 
   if (error) throw normalizeError(error, 'Unable to reject transaction.');
   signalApprovalQueueChanged();
+  kickSmsDispatcher(25);
   return data;
 }
 
@@ -423,6 +463,7 @@ export async function bulkApproveStaffTransactions(staffId, transactionIds) {
     );
   }
 
+  kickSmsDispatcher(100);
   signalApprovalQueueChanged();
   return result;
 }

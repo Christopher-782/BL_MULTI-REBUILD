@@ -3,3 +3,6 @@ Thumbs.db
 *.log
 .env
 .env.*
+*.rar
+BLSUPABASE.txt
+supabase/.temp/

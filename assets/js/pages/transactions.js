@@ -10,6 +10,7 @@ import {
   formatCurrencyMinor,
   getAccountById,
   getCustomerTransactionContext,
+  getFilteredTransactionTotals,
   getPendingTransactionMakers,
   getTransactionSummary,
   initiateTransaction,
@@ -17,6 +18,7 @@ import {
   nairaToMinor,
   rejectTransaction,
   requestReversal,
+  searchTransactionCustomers,
 } from '../services/transactions.service.js';
 
 const session = await requireActiveProfile();
@@ -28,6 +30,7 @@ if (session) {
   const CAN_INITIATE = ['super_admin', 'admin', 'manager', 'staff'].includes(session.profile.role);
   const CAN_APPROVE = ['super_admin', 'admin', 'manager'].includes(session.profile.role);
   const CAN_REVERSE = ['super_admin', 'admin'].includes(session.profile.role);
+  const STAFF_TRANSACTION_ONLY = session.profile.role === 'staff';
 
   const state = {
     page: 1,
@@ -36,14 +39,16 @@ if (session) {
     search: '',
     status: 'all',
     type: 'all',
-    makerId: '',
+    makerId: STAFF_TRANSACTION_ONLY ? session.user.id : '',
     transactions: [],
+    filteredTotals: null,
     customerContext: null,
     selectedAccount: null,
     selectedTransaction: null,
     bulkMakers: [],
     bulkMakerId: '',
     bulkSelectedIds: new Set(),
+    customerSearchSelectedNumber: '',
   };
 
   const message = document.querySelector('#pageMessage');
@@ -61,6 +66,14 @@ if (session) {
   const chargeInput = newForm.elements.charge;
   const netPreview = document.querySelector('#netAmountPreview');
   const chargeRuleMessage = document.querySelector('#chargeRuleMessage');
+  const customerSearchResults = document.querySelector('#customerSearchResults');
+  const customerSearchInput = newForm.elements.customerNumber;
+
+  let customerSearchTimer = null;
+  let customerSearchRequest = 0;
+  let customerSearchItems = [];
+  let customerSearchActiveIndex = -1;
+  let transactionRequestKey = createRequestId();
 
   const rejectDialog = document.querySelector('#rejectDialog');
   const rejectForm = document.querySelector('#rejectForm');
@@ -76,6 +89,27 @@ if (session) {
   document.querySelectorAll('[data-transaction-approve]').forEach((element) => {
     element.hidden = !CAN_APPROVE;
   });
+
+  if (STAFF_TRANSACTION_ONLY) {
+    document.body.classList.add('staff-transaction-workspace');
+
+    const summary = document.querySelector('.transaction-metric-grid');
+    if (summary) summary.hidden = true;
+
+    const topEyebrow = document.querySelector('.topbar .eyebrow');
+    if (topEyebrow) topEyebrow.textContent = 'STAFF TRANSACTION DESK';
+
+    const pageTitle = document.querySelector('.topbar h1');
+    if (pageTitle) pageTitle.textContent = 'Transactions';
+
+    const registerHeading = document.querySelector('.transaction-register-heading');
+    if (registerHeading) registerHeading.textContent = 'My transaction submissions';
+
+    const registerCopy = document.querySelector('#transactionRegisterCopy');
+    if (registerCopy) {
+      registerCopy.textContent = 'You can submit deposits and withdrawals here and follow the approval status of transactions you created. Management dashboards and other operational modules are not available to staff accounts.';
+    }
+  }
 
   function showMessage(text, type = 'success') {
     message.textContent = text;
@@ -109,6 +143,151 @@ if (session) {
     ].filter(Boolean).join(' ');
   }
 
+  function renderPreview(container, fields) {
+    const items = fields.map(([labelText, value]) => {
+      const item = document.createElement('div');
+      const label = document.createElement('span');
+      const content = document.createElement('strong');
+      label.textContent = labelText;
+      content.textContent = String(value ?? '—');
+      item.append(label, content);
+      return item;
+    });
+
+    container.replaceChildren(...items);
+  }
+
+  function createRequestId() {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = [...bytes].map((value) => value.toString(16).padStart(2, '0'));
+    return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10).join('')}`;
+  }
+
+  function hideCustomerSearchResults() {
+    customerSearchItems = [];
+    customerSearchActiveIndex = -1;
+    if (!customerSearchResults) return;
+    customerSearchResults.hidden = true;
+    customerSearchResults.replaceChildren();
+    customerSearchInput.setAttribute('aria-expanded', 'false');
+  }
+
+  function setCustomerSearchActive(index) {
+    if (!customerSearchResults || !customerSearchItems.length) return;
+
+    const buttons = [...customerSearchResults.querySelectorAll('[data-customer-search-index]')];
+    customerSearchActiveIndex = Math.max(0, Math.min(index, buttons.length - 1));
+
+    buttons.forEach((button, buttonIndex) => {
+      const active = buttonIndex === customerSearchActiveIndex;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+      if (active) button.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  async function chooseCustomerSearchResult(result) {
+    if (!result?.customer_number) return;
+
+    state.customerSearchSelectedNumber = result.customer_number;
+    customerSearchInput.value = result.customer_number;
+    hideCustomerSearchResults();
+    await resolveCustomer(result.matched_account_id || null);
+  }
+
+  function renderCustomerSearchResults(results, query) {
+    if (!customerSearchResults) return;
+
+    customerSearchResults.replaceChildren();
+    customerSearchItems = results;
+    customerSearchActiveIndex = -1;
+
+    if (!results.length) {
+      const emptyResult = document.createElement('div');
+      emptyResult.className = 'customer-live-search-empty';
+      emptyResult.textContent = `No customer found for “${query}”.`;
+      customerSearchResults.append(emptyResult);
+      customerSearchResults.hidden = false;
+      customerSearchInput.setAttribute('aria-expanded', 'true');
+      return;
+    }
+
+    results.forEach((result, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'customer-live-result';
+      button.dataset.customerSearchIndex = String(index);
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', 'false');
+
+      const main = document.createElement('span');
+      main.className = 'customer-live-result-main';
+
+      const name = document.createElement('strong');
+      name.textContent = result.name || 'Unnamed customer';
+
+      const number = document.createElement('span');
+      number.textContent = `Customer ${result.customer_number}`;
+
+      main.append(name, number);
+
+      const meta = document.createElement('small');
+      const details = [result.phone || 'No phone'];
+      if (result.matched_account_number) {
+        details.push(`Account ${result.matched_account_number}`);
+      }
+      meta.textContent = details.join(' · ');
+
+      button.append(main, meta);
+      button.addEventListener('mouseenter', () => setCustomerSearchActive(index));
+      button.addEventListener('click', () => chooseCustomerSearchResult(result));
+      customerSearchResults.append(button);
+    });
+
+    customerSearchResults.hidden = false;
+    customerSearchInput.setAttribute('aria-expanded', 'true');
+  }
+
+  async function runDynamicCustomerSearch() {
+    const query = customerSearchInput.value.trim();
+    const requestId = ++customerSearchRequest;
+
+    if (!query) {
+      hideCustomerSearchResults();
+      return;
+    }
+
+    if (!/^\d{1,3}$/.test(query) && query.length < 2) {
+      hideCustomerSearchResults();
+      return;
+    }
+
+    if (customerSearchResults) {
+      customerSearchResults.replaceChildren();
+      const loadingResult = document.createElement('div');
+      loadingResult.className = 'customer-live-search-empty';
+      loadingResult.textContent = 'Searching customers...';
+      customerSearchResults.append(loadingResult);
+      customerSearchResults.hidden = false;
+      customerSearchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    try {
+      const results = await searchTransactionCustomers(query, { limit: 8 });
+      if (requestId !== customerSearchRequest) return;
+      renderCustomerSearchResults(results, query);
+    } catch (error) {
+      if (requestId !== customerSearchRequest) return;
+      hideCustomerSearchResults();
+      showMessage(error.message, 'error');
+    }
+  }
+
   function statusBadge(status) {
     const badge = document.createElement('span');
     badge.className = 'state-badge';
@@ -128,6 +307,7 @@ if (session) {
   function resetCustomerSelection() {
     state.customerContext = null;
     state.selectedAccount = null;
+    state.customerSearchSelectedNumber = '';
 
     customerPreview.hidden = true;
     customerPreview.replaceChildren();
@@ -140,6 +320,7 @@ if (session) {
 
     chargeRuleMessage.hidden = true;
     chargeRuleMessage.textContent = '';
+    hideCustomerSearchResults();
 
     updateChargeUI();
   }
@@ -155,24 +336,15 @@ if (session) {
       return;
     }
 
-    customerPreview.innerHTML = `
-      <div>
-        <span>Customer</span>
-        <strong>${customerName(customer) || '—'}</strong>
-      </div>
-      <div>
-        <span>Customer number</span>
-        <strong>${customer.customer_number || '—'}</strong>
-      </div>
-      <div>
-        <span>Phone</span>
-        <strong>${customer.phone || '—'}</strong>
-      </div>
-      <div>
-        <span>Status</span>
-        <strong>${customer.status || '—'}</strong>
-      </div>
-    `;
+    renderPreview(customerPreview, [
+      ['Customer', customerName(customer) || '—'],
+      ['Customer number', customer.customer_number || '—'],
+      ['Phone', customer.phone || '—'],
+      ['Status', customer.status || '—'],
+    ]);
+    state.customerSearchSelectedNumber = customer.customer_number || '';
+    if (customer.customer_number) customerSearchInput.value = customer.customer_number;
+    hideCustomerSearchResults();
     customerPreview.hidden = false;
 
     accountSelect.replaceChildren();
@@ -219,35 +391,27 @@ if (session) {
       return;
     }
 
-    accountPreview.innerHTML = `
-      <div>
-        <span>Account number</span>
-        <strong>${account.account_number}</strong>
-      </div>
-      <div>
-        <span>Account type</span>
-        <strong>${account.account_type}</strong>
-      </div>
-      <div>
-        <span>Account balance</span>
-        <strong>${formatCurrencyMinor(account.cached_balance_minor, account.currency)}</strong>
-      </div>
-      <div>
-        <span>Available for normal withdrawal</span>
-        <strong>${formatCurrencyMinor(
-          account.withdrawable_minor ?? Math.max(Number(account.cached_balance_minor || 0), 0),
+    renderPreview(accountPreview, [
+      ['Account number', account.account_number],
+      ['Account type', account.account_type],
+      ['Account balance', formatCurrencyMinor(account.cached_balance_minor, account.currency)],
+      [
+        'Available for normal withdrawal',
+        formatCurrencyMinor(
+          account.withdrawable_minor ?? (
+            BigInt(String(account.cached_balance_minor || 0)) > 0n
+              ? BigInt(String(account.cached_balance_minor || 0))
+              : 0n
+          ),
           account.currency,
-        )}</strong>
-      </div>
-      <div>
-        <span>Overdraft outstanding</span>
-        <strong>${formatCurrencyMinor(account.overdraft_outstanding_minor || 0, account.currency)}</strong>
-      </div>
-      <div>
-        <span>Status</span>
-        <strong>${account.status}</strong>
-      </div>
-    `;
+        ),
+      ],
+      [
+        'Overdraft outstanding',
+        formatCurrencyMinor(account.overdraft_outstanding_minor || 0, account.currency),
+      ],
+      ['Status', account.status],
+    ]);
     accountPreview.hidden = false;
 
     updateChargeUI();
@@ -356,8 +520,8 @@ if (session) {
     const selectedRows = selectedBulkRows();
     const selectedCount = selectedRows.length;
     const amountMinor = selectedRows.reduce(
-      (sum, row) => sum + Number(row.amount_minor || 0),
-      0,
+      (sum, row) => sum + BigInt(String(row.amount_minor || 0)),
+      0n,
     );
 
     const badge = document.querySelector('#bulkApprovalBadge');
@@ -634,13 +798,40 @@ if (session) {
     renderBulkQueueSummary();
   }
 
+  function renderFilteredTotals() {
+    const totals = state.filteredTotals || {};
+    const title = document.querySelector('#filteredTotalsTitle');
+
+    if (title) {
+      const maker = state.bulkMakers.find((item) => item.staff_id === state.makerId);
+      title.textContent = STAFF_TRANSACTION_ONLY
+        ? 'My filtered transaction totals'
+        : maker
+          ? `${maker.staff_name} filtered totals`
+          : 'Filtered transaction totals';
+    }
+
+    document.querySelector('#filteredTransactionCount').textContent =
+      Number(totals.transaction_count || 0).toLocaleString('en-NG');
+    document.querySelector('#filteredGrossAmount').textContent =
+      formatCurrencyMinor(totals.gross_amount_minor || 0);
+    document.querySelector('#filteredChargeAmount').textContent =
+      formatCurrencyMinor(totals.charge_amount_minor || 0);
+    document.querySelector('#filteredNetAmount').textContent =
+      formatCurrencyMinor(totals.net_amount_minor || 0);
+  }
+
   async function loadTransactions() {
     loading.hidden = false;
 
     try {
-      const result = await listTransactions(state);
+      const [result, totals] = await Promise.all([
+        listTransactions(state),
+        getFilteredTransactionTotals(state),
+      ]);
       state.transactions = result.transactions;
       state.count = result.count;
+      state.filteredTotals = totals;
 
       const visibleIds = new Set(
         state.transactions
@@ -652,6 +843,7 @@ if (session) {
       );
 
       renderTransactions();
+      renderFilteredTotals();
     } catch (error) {
       showMessage(error.message, 'error');
     } finally {
@@ -660,6 +852,8 @@ if (session) {
   }
 
   async function loadSummary() {
+    if (STAFF_TRANSACTION_ONLY) return;
+
     try {
       const summary = await getTransactionSummary();
 
@@ -683,11 +877,11 @@ if (session) {
   }
 
   async function refreshAll() {
-    await Promise.all([
-      loadTransactions(),
-      loadSummary(),
-      loadBulkMakers(),
-    ]);
+    const tasks = [loadTransactions()];
+    if (!STAFF_TRANSACTION_ONLY) tasks.push(loadSummary());
+    if (CAN_APPROVE) tasks.push(loadBulkMakers());
+
+    await Promise.all(tasks);
     renderBulkQueueSummary();
   }
 
@@ -716,7 +910,7 @@ if (session) {
       state.status = 'all';
       state.type = 'all';
       state.pageSize = 25;
-      state.makerId = '';
+      state.makerId = STAFF_TRANSACTION_ONLY ? session.user.id : '';
       state.bulkMakerId = '';
       state.bulkSelectedIds.clear();
       const bulkSelect = document.querySelector('#bulkStaffSelect');
@@ -811,7 +1005,10 @@ if (session) {
       if (!state.bulkMakerId || !ids.length) return;
 
       const rows = selectedBulkRows();
-      const amountMinor = rows.reduce((sum, row) => sum + Number(row.amount_minor || 0), 0);
+      const amountMinor = rows.reduce(
+        (sum, row) => sum + BigInt(String(row.amount_minor || 0)),
+        0n,
+      );
       const maker = state.bulkMakers.find((item) => item.staff_id === state.bulkMakerId);
       const makerName = maker?.staff_name || 'selected staff';
 
@@ -857,6 +1054,7 @@ if (session) {
     document
       .querySelector('#openNewTransaction')
       .addEventListener('click', () => {
+        transactionRequestKey = createRequestId();
         newForm.reset();
         newForm.elements.charge.value = '0.00';
         resetCustomerSelection();
@@ -865,10 +1063,72 @@ if (session) {
 
     document
       .querySelector('#lookupCustomer')
-      .addEventListener('click', () => resolveCustomer());
+      .addEventListener('click', async () => {
+        const value = customerSearchInput.value.trim();
+        if (/^\d{1,3}$/.test(value)) {
+          await resolveCustomer();
+          return;
+        }
+        await runDynamicCustomerSearch();
+      });
 
-    newForm.elements.customerNumber
-      .addEventListener('change', () => resolveCustomer());
+    customerSearchInput.addEventListener('input', () => {
+      const value = customerSearchInput.value.trim();
+
+      if (
+        state.customerSearchSelectedNumber &&
+        value !== state.customerSearchSelectedNumber
+      ) {
+        resetCustomerSelection();
+      }
+
+      window.clearTimeout(customerSearchTimer);
+
+      if (!value) {
+        hideCustomerSearchResults();
+        resetCustomerSelection();
+        return;
+      }
+
+      customerSearchTimer = window.setTimeout(runDynamicCustomerSearch, 220);
+    });
+
+    customerSearchInput.addEventListener('keydown', (event) => {
+      if (customerSearchResults?.hidden || !customerSearchItems.length) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setCustomerSearchActive(
+          customerSearchActiveIndex < 0 ? 0 : customerSearchActiveIndex + 1,
+        );
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setCustomerSearchActive(
+          customerSearchActiveIndex <= 0
+            ? customerSearchItems.length - 1
+            : customerSearchActiveIndex - 1,
+        );
+      } else if (event.key === 'Enter') {
+        const index = customerSearchActiveIndex >= 0 ? customerSearchActiveIndex : 0;
+        const result = customerSearchItems[index];
+        if (result) {
+          event.preventDefault();
+          chooseCustomerSearchResult(result);
+        }
+      } else if (event.key === 'Escape') {
+        hideCustomerSearchResults();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (
+        customerSearchResults &&
+        !customerSearchResults.contains(event.target) &&
+        event.target !== customerSearchInput
+      ) {
+        hideCustomerSearchResults();
+      }
+    });
 
     accountSelect.addEventListener('change', () => {
       const account =
@@ -892,6 +1152,13 @@ if (session) {
       event.preventDefault();
 
       if (!state.customerContext) {
+        const value = customerSearchInput.value.trim();
+        if (!/^\d{1,3}$/.test(value)) {
+          showMessage('Choose a customer from the live search results before submitting.', 'error');
+          await runDynamicCustomerSearch();
+          return;
+        }
+
         const context = await resolveCustomer();
         if (!context) return;
       }
@@ -946,9 +1213,11 @@ if (session) {
           amount: newForm.elements.amount.value,
           charge,
           description: newForm.elements.description.value,
+          idempotencyKey: transactionRequestKey,
         });
 
         newDialog.close();
+        transactionRequestKey = createRequestId();
 
         const chargeText =
           type === 'deposit' && Number(transaction.charge_minor || 0) > 0
@@ -1063,6 +1332,7 @@ if (session) {
       const customerNumber = account.customers?.customer_number;
 
       newForm.reset();
+      transactionRequestKey = createRequestId();
       newForm.elements.charge.value = '0.00';
 
       if (['deposit', 'withdrawal'].includes(prefillType)) {

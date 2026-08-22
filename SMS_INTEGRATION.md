@@ -1,52 +1,51 @@
-# BL Multi Concept — SMS Integration
+# BL Multi Concept — BulkSMS Nigeria Integration
 
-The original application used BulkSMS Nigeria. The Supabase rebuild now uses
-the same provider family, but the provider credential is kept inside a
-Supabase Edge Function secret rather than in Render/browser code.
+This build integrates the supplied `smsService.js` behavior into the Supabase-based website without exposing the BulkSMS API token in browser code.
 
-## What is connected
+The original supplied service is Node/CommonJS (`require`, `process.env`, Axios). This BL Multi Concept deployment is a static Render site, so the provider call runs inside the authenticated Supabase Edge Function instead.
 
-Automatic queued alerts are created for:
+## What is integrated
 
-- approved and rejected deposits/withdrawals/reversals;
+Automatic SMS queue events are created for:
+
+- approved deposit / credit alerts;
+- approved withdrawal / debit alerts;
+- transaction rejection alerts;
 - approved/disbursed and rejected loans;
 - approved and rejected loan repayments;
 - approved and rejected overdrafts;
-- bulk staff transaction approvals (one SMS event per approved transaction).
+- bulk staff transaction approvals (one customer alert per approved transaction).
 
-SMS delivery is deliberately separate from the financial transaction itself.
-If BulkSMS Nigeria is temporarily unavailable, the financial approval remains
-successful and the SMS stays retryable in `public.sms_outbox`.
+The supplied service's Nigerian phone normalization, message sanitization and BL Multi Concept alert style are retained. The Edge Function uses BulkSMS Nigeria's current v2 API rather than exposing credentials in the static frontend.
 
-## 1. Run SQL
+Financial approvals and SMS delivery are deliberately decoupled. A transaction remains successfully approved even if the SMS provider is temporarily unavailable; the alert stays retryable in `public.sms_outbox`.
 
-Run:
+## 1. Run the database migrations
 
-`supabase/015_sms_alerts.sql`
+Run these in Supabase SQL Editor in order if they have not already been applied:
 
-in Supabase SQL Editor.
+1. `supabase/015_sms_alerts.sql`
+2. `supabase/016_bulk_approval_schema_cache_hotfix.sql`
+3. `supabase/017_staff_transaction_only.sql`
 
-## 2. Create Edge Function secrets
+## 2. Configure Edge Function secrets
 
-Do NOT put the SMS token in Render, HTML, JavaScript, GitHub, or a public SQL
-file.
+Never put the SMS token in HTML, frontend JavaScript, Render environment variables served to the browser, GitHub, or a public SQL file.
 
-Configure these secrets for the `sms-alerts` Supabase Edge Function:
+Configure the following secrets for the `sms-alerts` Supabase Edge Function:
 
-- `BULKSMS_TOKEN` — your existing BulkSMS Nigeria API token.
-- `SMS_SENDER_ID` — an approved BulkSMS Nigeria sender ID. Current provider
-  documentation limits the sender ID to 11 characters.
+- `BULKSMS_TOKEN` — BulkSMS Nigeria API token.
+- `SMS_SENDER_ID` — the approved sender ID from the BulkSMS account (maximum 11 characters).
 - `SMS_PROVIDER=bulksmsnigeria`
 - `SMS_TEST_MODE=true`
 - `SMS_GATEWAY=direct-refund`
 
-Keep `SMS_TEST_MODE=true` while testing. Change it to `false` only after a
-sandbox test succeeds and the sender ID is approved.
+Compatibility aliases from the supplied service are also supported:
 
-The old project used `BL MULTI CONCEPT` as the provider `from` value. Current
-BulkSMS Nigeria v2 documentation limits `from` to 11 characters, so use the
-actual approved sender ID from your BulkSMS Nigeria account rather than
-hard-coding the old longer value.
+- `TEST_MODE` may be used if `SMS_TEST_MODE` is not defined.
+- `BULKSMS_SENDER_ID` may be used if `SMS_SENDER_ID` is not defined.
+
+Keep test mode enabled while validating the integration. Switch it off only after the sender ID and test requests work.
 
 ## 3. Deploy the Edge Function
 
@@ -58,42 +57,38 @@ as the Supabase Edge Function named:
 
 `sms-alerts`
 
-The function requires an authenticated BL Multi Concept staff session.
+## 4. Deploy the website
 
-## 4. Deploy frontend to Render
+Render serves the `public` folder. Redeploy after pushing the updated build.
 
-Deploy the updated `public` folder.
-
-A new Administration page is available:
+The administration SMS page remains:
 
 `/sms.html`
 
-Super admins/admins can:
+Only Super Admin/Admin accounts can open it. They can see provider status, Test/Live mode, queue totals, dispatch pending alerts, and send a connection test. The API token is never displayed.
 
-- see whether the provider is configured;
-- see Test vs Live mode;
-- view pending/failed/skipped/sent-today counts;
-- dispatch pending alerts;
-- send a test SMS.
+## 5. Recommended test sequence
 
-The API token is never displayed.
+1. Set `SMS_TEST_MODE=true`.
+2. Run migration 015 if it has not been run.
+3. Deploy `sms-alerts`.
+4. Open `/sms.html` as an Admin/Super Admin.
+5. Verify the provider says `Configured`.
+6. Send a test to your own Nigerian number.
+7. Create a small deposit as a staff user.
+8. Approve it from a different management account.
+9. Confirm the SMS outbox item changes to `sent` in test mode.
+10. Set `SMS_TEST_MODE=false` only when ready for real delivery.
 
-## 5. Test in this order
+## Staff access model in this build
 
-1. Leave `SMS_TEST_MODE=true`.
-2. Open `/sms.html`.
-3. Confirm `Configured`.
-4. Send a test to your own Nigerian number.
-5. Approve one small test deposit.
-6. Confirm the outbox item changes to `sent`.
-7. After validation, set `SMS_TEST_MODE=false`.
-8. Test one real SMS before normal use.
+A user whose profile role is `staff` is transaction-only:
 
-## Security model
-
-- Provider credential: Supabase Edge Function secret only.
-- Browser: only invokes the authenticated Edge Function.
-- Database: records event payload/status, never the provider token.
-- Financial RPCs do not fail because of an external SMS outage.
-- Duplicate SMS prevention uses unique event keys.
-- Failed messages retry with increasing delay up to the configured attempt cap.
+- login lands on `/transactions.html`;
+- dashboard and other operational pages redirect back to Transactions;
+- sidebar shows Transactions only;
+- management transaction metrics are hidden;
+- staff see their own transaction submissions in the register;
+- staff can initiate deposits/withdrawals;
+- staff cannot approve transactions;
+- database authorization helpers no longer allow staff to create/manage customers or initiate loan, overdraft, or expense workflows.

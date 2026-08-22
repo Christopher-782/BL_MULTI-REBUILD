@@ -69,7 +69,7 @@ form.addEventListener('submit', async (event) => {
       return;
     }
 
-    window.location.replace('./dashboard.html');
+    window.location.replace(profile.role === 'staff' ? './transactions.html' : './dashboard.html');
   } catch (error) {
     console.error('Login error:', error);
     message.textContent = 'Unable to sign in right now. Please try again.';

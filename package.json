@@ -1,0 +1,11 @@
+{
+  "name": "bl-multi-concept",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm test",
+    "test": "node scripts/validate-static.mjs",
+    "test:staging-concurrency": "node scripts/staging-concurrency-test.mjs"
+  }
+}

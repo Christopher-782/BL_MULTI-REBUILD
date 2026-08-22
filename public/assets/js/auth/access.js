@@ -5,6 +5,17 @@ export function humanizeRole(role = '') {
   return String(role).replaceAll('_', ' ');
 }
 
+const STAFF_ALLOWED_PAGES = new Set(['transactions.html']);
+
+function currentPageName() {
+  const value = window.location.pathname.split('/').pop() || 'dashboard.html';
+  return value.toLowerCase();
+}
+
+export function landingPageForRole(role) {
+  return role === 'staff' ? './transactions.html' : './dashboard.html';
+}
+
 export async function getProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
@@ -27,8 +38,18 @@ export async function requireActiveProfile({ roles = [], redirectTo = './login.h
     return null;
   }
 
+  const landingPage = landingPageForRole(profile.role);
+
+  if (
+    profile.role === 'staff' &&
+    !STAFF_ALLOWED_PAGES.has(currentPageName())
+  ) {
+    window.location.replace(landingPage);
+    return null;
+  }
+
   if (roles.length && !roles.includes(profile.role)) {
-    window.location.replace('./dashboard.html');
+    window.location.replace(landingPage);
     return null;
   }
 
@@ -249,18 +270,45 @@ function bindPendingApprovalNotification(profile) {
 
 export function bindSessionUI(profile, user) {
   const displayName = profile.full_name || user.email || 'Staff member';
+  const staffTransactionOnly = profile.role === 'staff';
+
+  document.documentElement.dataset.appRole = profile.role;
 
   document.querySelectorAll('[data-session-name]').forEach((element) => {
     element.textContent = displayName;
   });
 
   document.querySelectorAll('[data-session-role]').forEach((element) => {
-    element.textContent = humanizeRole(profile.role);
+    element.textContent = staffTransactionOnly
+      ? 'Transaction staff'
+      : humanizeRole(profile.role);
   });
 
   document.querySelectorAll('[data-admin-only]').forEach((element) => {
     element.hidden = !['super_admin', 'admin'].includes(profile.role);
   });
+
+  document.querySelectorAll('[data-management-only]').forEach((element) => {
+    element.hidden = staffTransactionOnly;
+  });
+
+  if (staffTransactionOnly) {
+    document.body.classList.add('staff-transaction-only');
+
+    document.querySelectorAll('.sidebar-brand').forEach((brand) => {
+      brand.href = './transactions.html';
+      brand.setAttribute('aria-label', 'BL Multi Concept transactions');
+    });
+
+    document.querySelectorAll('.sidebar .nav-link[href]').forEach((link) => {
+      const href = String(link.getAttribute('href') || '').split('?')[0].split('#')[0];
+      link.hidden = !href.endsWith('transactions.html');
+    });
+
+    document.querySelectorAll('.sidebar .nav-label').forEach((label) => {
+      label.hidden = true;
+    });
+  }
 
   bindPendingApprovalNotification(profile);
 }

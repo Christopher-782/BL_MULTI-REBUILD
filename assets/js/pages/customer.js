@@ -45,11 +45,21 @@ if (session) {
   }
 
   function formatCurrencyMinor(value = 0, currency = 'NGN') {
-    return new Intl.NumberFormat('en-NG', {
+    const minor = BigInt(String(value ?? 0));
+    const negative = minor < 0n;
+    const absolute = negative ? -minor : minor;
+    const whole = absolute / 100n;
+    const fraction = (absolute % 100n).toString().padStart(2, '0');
+    const currencyPart = new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency,
-      minimumFractionDigits: 2,
-    }).format(Number(value || 0) / 100);
+      currencyDisplay: 'narrowSymbol',
+    }).formatToParts(0).find((part) => part.type === 'currency')?.value || currency;
+    const groupedWhole = new Intl.NumberFormat('en-NG', {
+      maximumFractionDigits: 0,
+    }).format(whole);
+
+    return `${negative ? '-' : ''}${currencyPart}${groupedWhole}.${fraction}`;
   }
 
   function formatDate(value) {
@@ -96,7 +106,10 @@ if (session) {
     const accounts = [...(customer.accounts || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     document.querySelector('#accountCount').textContent = accounts.length;
     document.querySelector('#totalCustomerBalance').textContent = formatCurrencyMinor(
-      accounts.reduce((sum, account) => sum + Number(account.cached_balance_minor || 0), 0),
+      accounts.reduce(
+        (sum, account) => sum + BigInt(String(account.cached_balance_minor || 0)),
+        0n,
+      ),
     );
 
     accounts.forEach((account) => {

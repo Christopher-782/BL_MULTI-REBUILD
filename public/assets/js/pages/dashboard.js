@@ -111,11 +111,11 @@ if (session) {
     setText('todayOperationalNet', formatCurrencyMinor(summary.today_operational_net_minor ?? 0));
 
     const netContainer = document.querySelector('#operationalNet');
-    const net = Number(summary.today_operational_net_minor ?? 0);
+    const net = BigInt(String(summary.today_operational_net_minor ?? 0));
     if (netContainer) {
-      netContainer.classList.toggle('negative', net < 0);
-      netContainer.classList.toggle('positive', net >= 0);
-      netContainer.dataset.sign = net < 0 ? 'negative' : 'positive';
+      netContainer.classList.toggle('negative', net < 0n);
+      netContainer.classList.toggle('positive', net >= 0n);
+      netContainer.dataset.sign = net < 0n ? 'negative' : 'positive';
     }
 
     const todayFlowStatus = document.querySelector('#todayFlowStatus');
@@ -125,7 +125,7 @@ if (session) {
         summary.today_withdrawals_minor,
         summary.today_revenue_minor,
         summary.today_expenses_minor,
-      ].some((value) => Number(value || 0) !== 0);
+      ].some((value) => BigInt(String(value || 0)) !== 0n);
       todayFlowStatus.textContent = hasActivity ? 'Activity recorded today' : 'No approved movement yet';
     }
 
