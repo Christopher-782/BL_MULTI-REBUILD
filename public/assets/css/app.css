@@ -3865,3 +3865,310 @@ body.sidebar-open {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================
+   MOBILE RESPONSIVENESS HARDENING
+   ========================================================= */
+
+@media (max-width: 980px) {
+  body.app-page {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-page .sidebar {
+    width: min(290px, calc(100vw - 36px));
+    max-width: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .app-page .main-content {
+    width: 100%;
+    min-width: 0;
+    padding-top: calc(72px + env(safe-area-inset-top));
+  }
+
+  .app-page .mobile-menu-button {
+    left: calc(12px + env(safe-area-inset-left));
+    top: calc(12px + env(safe-area-inset-top));
+  }
+
+  .app-page .content-grid.two-column,
+  .app-page .report-grid,
+  .app-page .dashboard-two-column,
+  .app-page .loan-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-page .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-page .main-content {
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: calc(32px + env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+
+  .app-page .topbar,
+  .app-page .customer-detail-topbar {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .app-page .topbar > div:first-child,
+  .app-page .panel-heading > div {
+    min-width: 0;
+  }
+
+  .app-page .topbar h1,
+  .app-page .panel-heading h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .app-page .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .app-page .topbar-actions > *,
+  .app-page .topbar-actions a,
+  .app-page .topbar-actions button {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .app-page .customer-filter-form,
+  .app-page .transaction-filter-form,
+  .app-page .loan-filter-form,
+  .app-page .overdraft-filter-form,
+  .app-page .expense-filter-form,
+  .app-page .report-filter-form,
+  .app-page .account-lookup-row,
+  .app-page .bulk-approval-controls,
+  .app-page .sms-event-grid,
+  .app-page .filtered-total-grid {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .app-page .report-filter-panel,
+  .app-page .report-filter-form {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-page .report-filter-form > *,
+  .app-page .report-filter-form label,
+  .app-page .report-filter-form button,
+  .app-page .account-lookup-row button {
+    width: 100%;
+  }
+
+  .app-page .panel-heading {
+    min-height: 0;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-page .panel-heading > :last-child:not(:first-child) {
+    align-self: stretch;
+  }
+
+  .app-page .form-actions,
+  .app-page .dialog-actions,
+  .app-page .sms-form-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .app-page .form-actions > *,
+  .app-page .dialog-actions > *,
+  .app-page .sms-form-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-page input,
+  .app-page select,
+  .app-page textarea {
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .app-page textarea {
+    min-height: 96px;
+    resize: vertical;
+  }
+
+  .app-page .primary-button,
+  .app-page .secondary-button,
+  .app-page .danger-button,
+  .app-page .mini-button,
+  .app-page .icon-button {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .app-page .icon-button {
+    width: 44px;
+    height: 44px;
+    flex: none;
+  }
+
+  .app-page .transaction-actions,
+  .app-page .account-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-page .transaction-actions > *,
+  .app-page .account-actions > * {
+    width: 100%;
+  }
+
+  .app-page .account-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-page .detail-list > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .app-page .report-list > div,
+  .app-page .sms-detail-list > div,
+  .app-page .bulk-approval-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .app-page .report-list dd,
+  .app-page .sms-detail-list strong {
+    width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+
+  .app-page .pagination-bar {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-page .pagination-bar > div {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-page .pagination-bar button {
+    width: 100%;
+  }
+
+  .app-page .table-wrap {
+    margin-right: -2px;
+    margin-left: -2px;
+    border-radius: 8px;
+  }
+
+  .app-page .data-table,
+  .app-page .customers-table,
+  .app-page .transaction-table,
+  .app-page .loan-table,
+  .app-page .loan-repayment-table,
+  .app-page .loan-repayment-approval-table,
+  .app-page .overdraft-table,
+  .app-page .expense-table,
+  .app-page .report-expense-table {
+    min-width: 720px;
+  }
+
+  .app-page .data-table th,
+  .app-page .data-table td {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .app-page .app-dialog[open] {
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - 8px);
+    inset: auto 0 0;
+    margin: 0;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .app-page .dialog-card {
+    min-width: 0;
+    padding: 17px 15px calc(17px + env(safe-area-inset-bottom));
+  }
+
+  .app-page .dialog-heading {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    margin: -4px -2px 16px;
+    padding: 4px 2px 12px;
+    background: #fff;
+  }
+
+  .app-page .customer-live-results {
+    max-height: min(42dvh, 320px);
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-page .main-content {
+    padding-right: max(9px, env(safe-area-inset-right));
+    padding-left: max(9px, env(safe-area-inset-left));
+  }
+
+  .app-page .topbar-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-page .panel {
+    padding: 14px 12px;
+  }
+
+  .app-page .metric-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-page .metric-card strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .app-page .data-table,
+  .app-page .customers-table,
+  .app-page .transaction-table,
+  .app-page .loan-table,
+  .app-page .loan-repayment-table,
+  .app-page .loan-repayment-approval-table,
+  .app-page .overdraft-table,
+  .app-page .expense-table,
+  .app-page .report-expense-table {
+    min-width: 660px;
+  }
+}

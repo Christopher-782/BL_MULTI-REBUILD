@@ -1201,6 +1201,9 @@ if (session) {
 
     chargeInput.addEventListener("input", updateNetPreview);
 
+    const submitNewTransactionButton = document.querySelector(
+      "#submitNewTransaction",
+    );
     let transactionSubmitting = false;
 
     newForm.addEventListener("keydown", (event) => {
@@ -1216,10 +1219,10 @@ if (session) {
     });
 
     async function submitNewTransaction(event) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
+      if (!event || event.currentTarget !== submitNewTransactionButton) return;
+
+      event.preventDefault();
+      event.stopPropagation();
 
       if (transactionSubmitting) {
         return;
@@ -1227,7 +1230,7 @@ if (session) {
 
       transactionSubmitting = true;
 
-      const submit = newForm.querySelector('button[type="submit"]');
+      const submit = submitNewTransactionButton;
 
       try {
         if (!state.customerContext) {
@@ -1326,18 +1329,11 @@ if (session) {
       }
     }
 
-    const submitNewTransactionButton = newForm.querySelector(
-      'button[type="submit"]',
-    );
     if (submitNewTransactionButton) {
       submitNewTransactionButton.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopImmediatePropagation();
-        submitNewTransaction({
-          preventDefault: () => {},
-          stopPropagation: () => {},
-          currentTarget: newForm,
-        });
+        submitNewTransaction(event);
       });
     }
   }
