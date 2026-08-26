@@ -245,7 +245,11 @@ if (session) {
 
       button.append(main, meta);
       button.addEventListener('mouseenter', () => setCustomerSearchActive(index));
-      button.addEventListener('click', () => chooseCustomerSearchResult(result));
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        chooseCustomerSearchResult(result);
+      });
       customerSearchResults.append(button);
     });
 
@@ -1063,7 +1067,9 @@ if (session) {
 
     document
       .querySelector('#lookupCustomer')
-      .addEventListener('click', async () => {
+      .addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         const value = customerSearchInput.value.trim();
         if (/^\d{1,3}$/.test(value)) {
           await resolveCustomer();
@@ -1148,8 +1154,29 @@ if (session) {
     chargeInput
       .addEventListener('input', updateNetPreview);
 
-    newForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
+    let transactionSubmitting = false;
+
+    newForm.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
+        event.preventDefault();
+      }
+    });
+
+    async function submitNewTransaction(event) {
+      // Only allow the actual submit button to trigger transaction creation.
+      if (event && event.currentTarget && event.currentTarget.type === 'button') {
+        return;
+      }
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      if (transactionSubmitting) {
+        return;
+      }
+
+      transactionSubmitting = true;
 
       if (!state.customerContext) {
         const value = customerSearchInput.value.trim();
@@ -1225,17 +1252,31 @@ if (session) {
             : '';
 
         showMessage(
-          `${transaction.reference} submitted for approval.${chargeText}`,
+          `Transaction ${transaction.reference} submitted successfully and is awaiting approval.${chargeText}`,
         );
 
         await refreshAll();
       } catch (error) {
         showMessage(error.message, 'error');
       } finally {
+        transactionSubmitting = false;
         submit.disabled = false;
         submit.textContent = 'Submit for approval';
       }
-    });
+    }
+
+    const submitNewTransactionButton = newForm.querySelector('button[type="submit"]');
+    if (submitNewTransactionButton) {
+      submitNewTransactionButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        submitNewTransaction({
+          preventDefault: () => {},
+          stopPropagation: () => {},
+          currentTarget: newForm
+        });
+      });
+    }
   }
 
   document
