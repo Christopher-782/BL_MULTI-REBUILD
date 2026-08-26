@@ -1352,14 +1352,9 @@ if (session) {
             ? ` Gross ${formatCurrencyMinor(transaction.amount_minor)}, charge ${formatCurrencyMinor(transaction.charge_minor)}, net ${formatCurrencyMinor(transaction.net_amount_minor)}.`
             : '';
 
-<<<<<<< HEAD
-        showMessage(
-          `Transaction ${transaction.reference} submitted successfully and is awaiting approval.${chargeText}`,
-=======
         showSuccessPopup(
           'Transaction Submitted Successfully',
           `Transaction ${transaction.reference} has been submitted successfully and is awaiting approval.${chargeText}`,
->>>>>>> 9c0ae87fa04f938089b1ef37118d2d1fe45b2703
         );
 
         await refreshAll();
