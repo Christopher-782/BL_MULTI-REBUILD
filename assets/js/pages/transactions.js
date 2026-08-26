@@ -225,7 +225,7 @@ if (session) {
     if (!results.length) {
       const emptyResult = document.createElement("div");
       emptyResult.className = "customer-live-search-empty";
-      emptyResult.textContent = `No customer found for “${query}”.`;
+      emptyResult.textContent = `No customer found for "${query}".`;
       customerSearchResults.append(emptyResult);
       customerSearchResults.hidden = false;
       customerSearchInput.setAttribute("aria-expanded", "true");
@@ -1209,6 +1209,12 @@ if (session) {
       }
     });
 
+    // Block native form submission (Enter key, mobile Go, etc.)
+    newForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
     async function submitNewTransaction(event) {
       if (event) {
         event.preventDefault();
@@ -1303,9 +1309,8 @@ if (session) {
             ? ` Gross ${formatCurrencyMinor(transaction.amount_minor)}, charge ${formatCurrencyMinor(transaction.charge_minor)}, net ${formatCurrencyMinor(transaction.net_amount_minor)}.`
             : "";
 
-        showSuccessPopup(
-          "Transaction Submitted Successfully",
-          `Transaction ${transaction.reference} has been submitted successfully and is awaiting approval.${chargeText}`,
+        showMessage(
+          `Transaction ${transaction.reference} submitted successfully and is awaiting approval.${chargeText}`,
         );
 
         await refreshAll();
