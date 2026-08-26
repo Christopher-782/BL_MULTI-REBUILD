@@ -335,6 +335,24 @@
     </form>
   </dialog>
 
+  <dialog id="reviewDialog" class="app-dialog">
+    <div class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">REVIEW TRANSACTION</p>
+          <h2 id="reviewTransactionReference">Transaction</h2>
+        </div>
+        <button id="closeReviewDialog" class="icon-button" type="button" aria-label="Close">×</button>
+      </div>
+      <p id="reviewTransactionDetails" class="panel-copy"></p>
+      <div class="dialog-actions">
+        <button id="cancelReview" class="secondary-button" type="button">Cancel</button>
+        <button id="reviewRejectButton" class="danger-button" type="button">Reject</button>
+        <button id="reviewApproveButton" class="primary-button" type="button">Accept</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="rejectDialog" class="app-dialog">
     <form id="rejectForm" class="dialog-card">
       <div class="dialog-heading">

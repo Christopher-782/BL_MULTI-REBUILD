@@ -78,6 +78,7 @@ if (session) {
   const rejectDialog = document.querySelector('#rejectDialog');
   const rejectForm = document.querySelector('#rejectForm');
   const reversalDialog = document.querySelector('#reversalDialog');
+  const reviewDialog = document.querySelector('#reviewDialog');
   const reversalForm = document.querySelector('#reversalForm');
 
   if (!CAN_INITIATE) {
@@ -121,6 +122,78 @@ if (session) {
     showMessage.timer = window.setTimeout(() => {
       message.hidden = true;
     }, 7000);
+  }
+
+  function showSuccessPopup(title, text) {
+    const existing = document.querySelector('#transactionSuccessPopup');
+    if (existing) existing.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'transactionSuccessPopup';
+    popup.innerHTML = `
+      <div class="success-popup-overlay">
+        <div class="success-popup-card">
+          <div class="success-popup-icon">✓</div>
+          <h2>${title}</h2>
+          <p>${text}</p>
+          <button type="button" id="closeSuccessPopup">OK</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(popup);
+
+    const style = document.createElement('style');
+    style.id = 'transactionSuccessPopupStyle';
+    style.textContent = `
+      .success-popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:99999;
+      }
+      .success-popup-card {
+        width:min(420px,90vw);
+        background:#fff;
+        border-radius:16px;
+        padding:32px;
+        text-align:center;
+        box-shadow:0 20px 60px rgba(0,0,0,.25);
+        animation:successPop .25s ease;
+      }
+      .success-popup-icon {
+        width:64px;
+        height:64px;
+        border-radius:50%;
+        background:#16a34a;
+        color:white;
+        font-size:42px;
+        margin:0 auto 16px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+      .success-popup-card h2 { margin:0 0 10px; }
+      .success-popup-card p { color:#555; line-height:1.5; }
+      .success-popup-card button {
+        margin-top:20px;
+        padding:12px 35px;
+        border:0;
+        border-radius:8px;
+        background:#2563eb;
+        color:white;
+        cursor:pointer;
+      }
+      @keyframes successPop {
+        from {transform:scale(.85);opacity:0}
+        to {transform:scale(1);opacity:1}
+      }`;
+    document.head.appendChild(style);
+
+    popup.querySelector('#closeSuccessPopup').onclick = () => popup.remove();
+    setTimeout(() => popup.remove(), 6000);
   }
 
   function formatDate(value) {
@@ -680,11 +753,39 @@ if (session) {
     return wrap;
   }
 
+  function openReviewDialog(row) {
+    if (!reviewDialog) return;
+    state.selectedTransaction = row;
+
+    const ref = document.querySelector('#reviewTransactionReference');
+    const details = document.querySelector('#reviewTransactionDetails');
+
+    if (ref) ref.textContent = row.reference;
+    if (details) {
+      details.textContent = `${row.customer_name || 'Customer'} · ${formatCurrencyMinor(row.amount_minor, row.currency)} · Status: ${row.status}`;
+    }
+
+    reviewDialog.showModal();
+  }
+
+  async function reviewApproveSelected() {
+    if (!state.selectedTransaction) return;
+    await approveTransaction(state.selectedTransaction.id);
+    reviewDialog.close();
+    showMessage(`${state.selectedTransaction.reference} approved successfully.`);
+    await refreshAll();
+  }
+
   function renderTransactions() {
     tableBody.replaceChildren();
 
     for (const row of state.transactions) {
       const tr = document.createElement('tr');
+      tr.classList.add('clickable-transaction-row');
+      tr.addEventListener('click', (event) => {
+        if (event.target.closest('button, input, textarea, select')) return;
+        openReviewDialog(row);
+      });
 
       if (CAN_APPROVE) {
         const selectCell = document.createElement('td');
@@ -1251,8 +1352,14 @@ if (session) {
             ? ` Gross ${formatCurrencyMinor(transaction.amount_minor)}, charge ${formatCurrencyMinor(transaction.charge_minor)}, net ${formatCurrencyMinor(transaction.net_amount_minor)}.`
             : '';
 
+<<<<<<< HEAD
         showMessage(
           `Transaction ${transaction.reference} submitted successfully and is awaiting approval.${chargeText}`,
+=======
+        showSuccessPopup(
+          'Transaction Submitted Successfully',
+          `Transaction ${transaction.reference} has been submitted successfully and is awaiting approval.${chargeText}`,
+>>>>>>> 9c0ae87fa04f938089b1ef37118d2d1fe45b2703
         );
 
         await refreshAll();
@@ -1286,6 +1393,38 @@ if (session) {
   document
     .querySelector('#cancelNewTransaction')
     .addEventListener('click', () => newDialog.close());
+
+  document
+    .querySelector('#closeReviewDialog')
+    ?.addEventListener('click', () => reviewDialog.close());
+
+  document
+    .querySelector('#cancelReview')
+    ?.addEventListener('click', () => reviewDialog.close());
+
+  document
+    .querySelector('#reviewApproveButton')
+    ?.addEventListener('click', async () => {
+      const button = document.querySelector('#reviewApproveButton');
+      button.disabled = true;
+      try {
+        await reviewApproveSelected();
+      } catch (error) {
+        showMessage(error.message, 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+  document
+    .querySelector('#reviewRejectButton')
+    ?.addEventListener('click', () => {
+      if (!state.selectedTransaction) return;
+      reviewDialog.close();
+      rejectForm.reset();
+      document.querySelector('#rejectTransactionReference').textContent = state.selectedTransaction.reference;
+      rejectDialog.showModal();
+    });
 
   document
     .querySelector('#closeRejectDialog')
