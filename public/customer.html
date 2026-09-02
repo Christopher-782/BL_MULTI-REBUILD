@@ -128,6 +128,36 @@
       <section class="panel wide-panel">
         <div class="panel-heading">
           <div>
+            <p class="eyebrow">TRANSACTION HISTORY</p>
+            <h2>Customer transaction history</h2>
+            <p class="panel-copy">The latest 100 transactions across all accounts belonging to this customer.</p>
+          </div>
+          <strong id="customerTransactionCount">0</strong>
+        </div>
+
+        <p id="customerTransactionsEmpty" class="empty-state">No transactions found for this customer.</p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Account</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Charge</th>
+                <th>Net</th>
+                <th>Status</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="customerTransactionsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-heading">
+          <div>
             <p class="eyebrow">ACCOUNTS</p>
             <h2>Customer accounts</h2>
           </div>

@@ -226,6 +226,45 @@ export async function listTransactions({
   };
 }
 
+export async function getCustomerTransactionHistory(customerId, { limit = 100 } = {}) {
+  if (!customerId) throw new Error('Customer ID is required.');
+
+  const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
+
+  const { data, error } = await supabase
+    .from('transaction_directory')
+    .select([
+      'id',
+      'reference',
+      'type',
+      'amount_minor',
+      'charge_minor',
+      'net_amount_minor',
+      'charge_required',
+      'charge_reason',
+      'status',
+      'description',
+      'rejection_reason',
+      'initiated_by_name',
+      'initiated_at',
+      'reviewed_by_name',
+      'reviewed_at',
+      'created_at',
+      'account_id',
+      'account_number',
+      'account_type',
+      'currency',
+      'original_reference',
+    ].join(','))
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: false })
+    .limit(safeLimit);
+
+  if (error) throw normalizeError(error, 'Unable to load customer transaction history.');
+
+  return Array.isArray(data) ? data : [];
+}
+
 export async function getTransactionSummary() {
   const { data, error } = await supabase.rpc('get_transaction_summary');
 

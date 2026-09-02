@@ -5,6 +5,7 @@ import {
   updateAccountStatus,
   updateCustomer,
 } from '../services/customers.service.js';
+import { getCustomerTransactionHistory } from '../services/transactions.service.js';
 
 const session = await requireActiveProfile();
 
@@ -17,6 +18,9 @@ if (session) {
   const message = document.querySelector('#pageMessage');
   const form = document.querySelector('#customerDetailsForm');
   const accountsBody = document.querySelector('#accountsTableBody');
+  const transactionsBody = document.querySelector('#customerTransactionsTableBody');
+  const transactionsEmpty = document.querySelector('#customerTransactionsEmpty');
+  const transactionCount = document.querySelector('#customerTransactionCount');
   const accountDialog = document.querySelector('#createAccountDialog');
   const accountForm = document.querySelector('#createAccountForm');
   let customer = null;
@@ -196,6 +200,78 @@ if (session) {
     document.querySelector('#accountsEmpty').hidden = accounts.length > 0;
   }
 
+  function renderTransactionHistory(transactions) {
+    transactionsBody.replaceChildren();
+    transactionCount.textContent = String(transactions.length);
+
+    for (const transaction of transactions) {
+      const row = document.createElement('tr');
+
+      const referenceCell = document.createElement('td');
+      const reference = document.createElement('strong');
+      reference.textContent = transaction.reference || '—';
+      const initiated = document.createElement('small');
+      initiated.textContent = formatDate(transaction.created_at);
+      referenceCell.append(reference, initiated);
+
+      const accountCell = document.createElement('td');
+      accountCell.textContent = transaction.account_number || '—';
+
+      const typeCell = document.createElement('td');
+      typeCell.textContent = transaction.type || '—';
+
+      const amountCell = document.createElement('td');
+      amountCell.textContent = formatCurrencyMinor(
+        transaction.amount_minor,
+        transaction.currency || 'NGN',
+      );
+
+      const chargeCell = document.createElement('td');
+      chargeCell.textContent = formatCurrencyMinor(
+        transaction.charge_minor || 0,
+        transaction.currency || 'NGN',
+      );
+
+      const netCell = document.createElement('td');
+      netCell.textContent = formatCurrencyMinor(
+        transaction.net_amount_minor ?? transaction.amount_minor ?? 0,
+        transaction.currency || 'NGN',
+      );
+
+      const statusCell = document.createElement('td');
+      statusCell.append(statusBadge(transaction.status));
+
+      const descriptionCell = document.createElement('td');
+      descriptionCell.textContent = transaction.description || '—';
+
+      row.append(
+        referenceCell,
+        accountCell,
+        typeCell,
+        amountCell,
+        chargeCell,
+        netCell,
+        statusCell,
+        descriptionCell,
+      );
+      transactionsBody.append(row);
+    }
+
+    transactionsEmpty.hidden = transactions.length > 0;
+  }
+
+  async function loadTransactionHistory() {
+    try {
+      const transactions = await getCustomerTransactionHistory(customerId, { limit: 100 });
+      renderTransactionHistory(transactions);
+    } catch (error) {
+      transactionsBody.replaceChildren();
+      transactionCount.textContent = '0';
+      transactionsEmpty.hidden = false;
+      transactionsEmpty.textContent = error.message;
+    }
+  }
+
   function renderHeader() {
     document.querySelector('#customerHeading').textContent = fullName(customer);
     document.querySelector('#customerNumber').textContent = customer.customer_number;
@@ -209,6 +285,7 @@ if (session) {
       fillCustomerForm(customer);
       renderHeader();
       renderAccounts();
+      await loadTransactionHistory();
     } catch (error) {
       showMessage(error.message, 'error');
     }
